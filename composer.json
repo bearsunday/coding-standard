@@ -1,0 +1,36 @@
+{
+    "name": "bear/conding-standard",
+    "description": "PHPCS ruleset and custom sniffs for BEAR.Sunday projects",
+    "type": "phpcodesniffer-standard",
+    "license": "MIT",
+    "require": {
+        "php": "^8.2",
+        "squizlabs/php_codesniffer": "^4.0.1",
+        "slevomat/coding-standard": "^8.28",
+        "doctrine/coding-standard": "^14.0"
+    },
+    "require-dev": {
+        "dealerdirect/phpcodesniffer-composer-installer": "^1.2.0",
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "BearSunday\\Sniffs\\": "BearSunday/Sniffs/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "BearSunday\\Tests\\": "BearSunday/Tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true
+        }
+    },
+    "scripts": {
+        "phpcs": "phpcs",
+        "test": "phpunit"
+    }
+}
