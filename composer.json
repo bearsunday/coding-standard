@@ -1,5 +1,5 @@
 {
-    "name": "bear/conding-standard",
+    "name": "bearsunday/coding-standard",
     "description": "PHPCS ruleset and custom sniffs for BEAR.Sunday projects",
     "type": "phpcodesniffer-standard",
     "license": "MIT",

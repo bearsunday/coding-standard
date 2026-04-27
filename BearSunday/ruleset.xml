@@ -15,6 +15,19 @@
             property attributes are still written on their own line by convention.
         -->
         <exclude name="SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing"/>
+        <!-- BEAR.Sunday convention: every injectable interface ends in *Interface
+             (ResourceInterface, RendererInterface, ...). The suffix encodes
+             dependency-shape clarity, not redundancy. -->
+        <exclude name="SlevomatCodingStandard.Classes.SuperfluousInterfaceNaming"/>
+
+        <!-- BEAR.Sunday convention: domain exceptions end in *Exception
+             (BadRequestException, UnauthorizedException, ...) so catch-site
+             greps are trivial. -->
+        <exclude name="SlevomatCodingStandard.Classes.SuperfluousExceptionNaming"/>
+
+        <!-- BEAR.Sunday convention: abstract bases use the Abstract* prefix
+             (AbstractAppTestCase, ...). -->
+        <exclude name="SlevomatCodingStandard.Classes.SuperfluousAbstractClassNaming"/>
     </rule>
 
     <!-- Forbidden debug/output functions -->

@@ -7,7 +7,7 @@ Extends [Doctrine Coding Standard](https://github.com/doctrine/coding-standard) 
 ## Installation
 
 ```bash
-composer require --dev bear/conding-standard
+composer require --dev bearsunday/coding-standard
 ```
 
 The `dealerdirect/phpcodesniffer-composer-installer` plugin auto-registers the standard. After install, `BearSunday` is available as a PHPCS standard name.
@@ -29,6 +29,17 @@ The `dealerdirect/phpcodesniffer-composer-installer` plugin auto-registers the s
 
 ```bash
 vendor/bin/phpcs --standard=BearSunday src/
+```
+
+## Notes for consumers
+
+When a class extends a parent whose property is untyped, for example `BEAR\Resource\ResourceObject::$body` is mixed, the Slevomat sniff `SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint` demands a native type but phpstan rejects subclass-only native types when the parent has none (`property.extraNativeType`). Consuming projects should restrict the rule via `<include-pattern>` to paths where it is safe, typically not `src/Resource/*`.
+
+```xml
+<rule ref="SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint">
+    <include-pattern>src/Module/*</include-pattern>
+    <include-pattern>tests/*</include-pattern>
+</rule>
 ```
 
 ## What's included
