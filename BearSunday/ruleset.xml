@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<ruleset
+    name="BearSunday"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../vendor/squizlabs/php_codesniffer/phpcs.xsd"
+>
+    <description>BEAR.Sunday Coding Standard — extends Doctrine with BEAR.Sunday-specific sniffs.</description>
+
+    <!-- Extend Doctrine Coding Standard -->
+    <rule ref="Doctrine">
+        <!--
+            Allow inline parameter attributes. The Slevomat sniff defaults to
+            forcing #[Attr] onto its own line, which makes #[Input] DTO
+            signatures (function f(#[Input] Dto $input)) verbose. Class and
+            property attributes are still written on their own line by convention.
+        -->
+        <exclude name="SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing"/>
+    </rule>
+
+    <!-- Forbidden debug/output functions -->
+    <rule ref="Generic.PHP.ForbiddenFunctions">
+        <properties>
+            <property name="forbiddenFunctions" type="array">
+                <element key="var_dump" value="null"/>
+                <element key="print_r" value="null"/>
+                <element key="dd" value="null"/>
+                <element key="error_log" value="null"/>
+                <element key="dump" value="null"/>
+            </property>
+        </properties>
+    </rule>
+
+    <!-- BEAR.Sunday custom sniffs -->
+    <rule ref="BearSunday.Resources.ReturnStatic"/>
+    <rule ref="BearSunday.Resources.NoSuperglobals"/>
+    <rule ref="BearSunday.DbQuery.RedundantType"/>
+    <rule ref="BearSunday.Di.NoNewService"/>
+</ruleset>

@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+<ruleset
+    name="bearsunday-coding-standard-self"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="vendor/squizlabs/php_codesniffer/phpcs.xsd"
+>
+    <description>Self-check CS for the bearsunday/coding-standard package.</description>
+
+    <arg name="basepath" value="."/>
+    <arg name="extensions" value="php"/>
+    <arg name="parallel" value="4"/>
+    <arg value="ps"/>
+
+    <file>BearSunday/Sniffs</file>
+    <file>BearSunday/Tests</file>
+
+    <!-- Use Doctrine as the base (not BearSunday itself, to avoid circular dependency) -->
+    <rule ref="Doctrine">
+        <exclude name="SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing"/>
+    </rule>
+
+    <!-- Forbidden debug functions -->
+    <rule ref="Generic.PHP.ForbiddenFunctions">
+        <properties>
+            <property name="forbiddenFunctions" type="array">
+                <element key="var_dump" value="null"/>
+                <element key="print_r" value="null"/>
+                <element key="dd" value="null"/>
+                <element key="error_log" value="null"/>
+                <element key="dump" value="null"/>
+            </property>
+        </properties>
+    </rule>
+</ruleset>
