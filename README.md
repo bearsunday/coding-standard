@@ -86,6 +86,25 @@ public function onGet(#[QueryParam('id')] int $id): static { ... }
 
 Alternatives mentioned in the error message: `#[QueryParam]`, `#[CookieParam]`, `#[UploadFiles]`.
 
+### BearSunday.Resources.NoAbstractResource
+
+**Trigger:** any `abstract class` declaration inside a file whose path contains
+`/Resource/`.
+
+**Rule:** Resource classes must be concrete. Shared abstract base classes should
+live outside the Resource directory, for example `Support\Resource`.
+
+Abstract methods are not flagged; this rule targets only abstract class
+declarations.
+
+```php
+// Bad — inside Resource/
+abstract class BasePageResource { ... }
+
+// Good — inside Resource/
+final class ArticlePageResource { ... }
+```
+
 ### BearSunday.DbQuery.RedundantType
 
 **Trigger:** `#[DbQuery]` attributes that include a `type:` named argument.

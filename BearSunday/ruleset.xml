@@ -33,6 +33,7 @@
     <!-- BEAR.Sunday custom sniffs -->
     <rule ref="BearSunday.Resources.ReturnStatic"/>
     <rule ref="BearSunday.Resources.NoSuperglobals"/>
+    <rule ref="BearSunday.Resources.NoAbstractResource"/>
     <rule ref="BearSunday.DbQuery.RedundantType"/>
     <rule ref="BearSunday.Di.NoNewService"/>
 </ruleset>
