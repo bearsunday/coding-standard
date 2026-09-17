@@ -17,6 +17,7 @@ use const T_CONSTANT_ENCAPSED_STRING;
 use const T_OBJECT_OPERATOR;
 use const T_STRING;
 use const T_STRING_CONCAT;
+use const T_VARIABLE;
 use const T_WHITESPACE;
 
 /**
@@ -61,6 +62,10 @@ final class NoAppDirWritablePathSniff implements Sniff
             return;
         }
 
+        if (! $this->isAppMetaReceiver($phpcsFile, $objectOperator)) {
+            return;
+        }
+
         $concat = $phpcsFile->findNext(T_WHITESPACE, $stackPtr + 1, null, true);
         if ($concat === false || $tokens[$concat]['code'] !== T_STRING_CONCAT) {
             return;
@@ -86,5 +91,31 @@ final class NoAppDirWritablePathSniff implements Sniff
             'WritablePathFromAppDir',
             [$literal, $replacement],
         );
+    }
+
+    /**
+     * Confirms the object operator's receiver is `$appMeta` or a `->appMeta`
+     * property chain (e.g. `$this->appMeta`), not an unrelated object that
+     * happens to expose its own `appDir` property.
+     */
+    private function isAppMetaReceiver(File $phpcsFile, int $objectOperator): bool
+    {
+        $tokens   = $phpcsFile->getTokens();
+        $receiver = $phpcsFile->findPrevious(T_WHITESPACE, $objectOperator - 1, null, true);
+        if ($receiver === false) {
+            return false;
+        }
+
+        if ($tokens[$receiver]['code'] === T_VARIABLE) {
+            return $tokens[$receiver]['content'] === '$appMeta';
+        }
+
+        if ($tokens[$receiver]['code'] !== T_STRING || $tokens[$receiver]['content'] !== 'appMeta') {
+            return false;
+        }
+
+        $precedingOperator = $phpcsFile->findPrevious(T_WHITESPACE, $receiver - 1, null, true);
+
+        return $precedingOperator !== false && $tokens[$precedingOperator]['code'] === T_OBJECT_OPERATOR;
     }
 }

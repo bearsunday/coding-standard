@@ -186,8 +186,8 @@ the leading namespace separator.
 **Trigger:** `$appMeta->appDir` concatenated with a string literal that is
 exactly `/var/tmp` or starts with `/var/tmp/`.
 
-**Rule:** writable-at-runtime paths must be derived from `$appMeta->tmpDir`,
-not built by concatenating onto `$appMeta->appDir`.
+**Rule:** `/var/tmp` paths must be derived from `$appMeta->tmpDir`, not built
+by concatenating onto `$appMeta->appDir`.
 
 BEAR.Sunday's [read-only deployment](https://bearsunday.github.io/manuals/1.0/ja/production.html#writable-paths)
 model (Vercel, AWS Lambda, `docker run --read-only`,

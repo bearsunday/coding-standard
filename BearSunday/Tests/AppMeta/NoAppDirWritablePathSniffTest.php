@@ -62,6 +62,8 @@ final class NoAppDirWritablePathSniffTest extends SniffTestCase
         $this->assertArrayNotHasKey(19, $errors, 'Should not error on appDir . build path');
         // $this->appMeta->appDir . '/var/tmp-old' (line 20) → not the /var/tmp segment, must not match by prefix
         $this->assertArrayNotHasKey(20, $errors, 'Should not error on appDir . /var/tmp-old path');
+        // $this->cache->appDir . '/var/tmp/cache' (line 22) → unrelated receiver, not $appMeta
+        $this->assertArrayNotHasKey(22, $errors, 'Should not error on unrelated object->appDir concatenation');
     }
 
     /** @param array<int, array<int, string>> $lineErrors */
