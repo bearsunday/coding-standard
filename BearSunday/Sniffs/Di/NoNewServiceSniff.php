@@ -59,7 +59,7 @@ final class NoNewServiceSniff implements Sniff
      */
     public array $allowedSuffixes = [];
 
-    private const array ALLOWED_SUFFIXES = [
+    private const ALLOWED_SUFFIXES = [
         'Input',
         'Dto',
         'Entity',
@@ -67,7 +67,7 @@ final class NoNewServiceSniff implements Sniff
         'Exception',
     ];
 
-    private const array ALLOWED_DATE_CLASSES = [
+    private const ALLOWED_DATE_CLASSES = [
         'DateInterval',
         'DateTime',
         'DateTimeImmutable',
@@ -75,7 +75,7 @@ final class NoNewServiceSniff implements Sniff
         'DateTimeZone',
     ];
 
-    private const array ALLOWED_SPL_CLASSES = [
+    private const ALLOWED_SPL_CLASSES = [
         'SplDoublyLinkedList',
         'SplFileInfo',
         'SplFileObject',
@@ -92,13 +92,13 @@ final class NoNewServiceSniff implements Sniff
         'SplTempFileObject',
     ];
 
-    private const array TRIGGER_PATHS = [
+    private const TRIGGER_PATHS = [
         '/Resource/',
         '/Service/',
         '/Domain/',
     ];
 
-    private const array EXCLUDE_PATHS = [
+    private const EXCLUDE_PATHS = [
         '/Module/',
         '/Provider/',
         '/Factory/',

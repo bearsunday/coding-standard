@@ -25,7 +25,7 @@ use const T_VARIABLE;
  */
 final class NoSuperglobalsSniff implements Sniff
 {
-    private const array SUPERGLOBALS = [
+    private const SUPERGLOBALS = [
         '$_GET',
         '$_POST',
         '$_FILES',

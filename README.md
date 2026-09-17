@@ -181,6 +181,31 @@ Extend the allow-list via `allowedClasses` or `allowedSuffixes` in your `phpcs.x
 `allowedClasses` accepts short class names or fully qualified class names without
 the leading namespace separator.
 
+### BearSunday.AppMeta.NoAppDirWritablePath
+
+**Trigger:** any `->appDir` property access (`$appMeta->appDir`,
+`$this->appMeta->appDir`, or another binding name) concatenated with a
+string literal that is exactly `/var/tmp` or starts with `/var/tmp/`.
+
+**Rule:** `/var/tmp` paths must be derived from `$appMeta->tmpDir`, not built
+by concatenating onto `$appMeta->appDir`.
+
+BEAR.Sunday's [read-only deployment](https://bearsunday.github.io/manuals/1.0/ja/production.html#writable-paths)
+model (Vercel, AWS Lambda, `docker run --read-only`,
+`readOnlyRootFilesystem: true`) keeps `appDir` read-only and resolves
+`tmpDir` under the writable system temp directory instead. Hard-coding a
+`/var/tmp` path from `appDir` works on a writable filesystem but breaks that
+deployment model. Other `appDir` concatenation — assets, config,
+`/var/build` compiled artifacts shipped with the release — is unaffected.
+
+```php
+// Bad
+$this->install(new QiqProdModule($this->appMeta->appDir . '/var/tmp/cache/qiq'));
+
+// Good
+$this->install(new QiqProdModule($this->appMeta->tmpDir . '/cache/qiq'));
+```
+
 ## Development
 
 ```bash
