@@ -15,6 +15,7 @@ use function var_export;
 
 use const T_CONSTANT_ENCAPSED_STRING;
 use const T_OBJECT_OPERATOR;
+use const T_OPEN_PARENTHESIS;
 use const T_STRING;
 use const T_STRING_CONCAT;
 use const T_WHITESPACE;
@@ -70,7 +71,7 @@ final class NoAppDirWritablePathSniff implements Sniff
             return;
         }
 
-        $string = $phpcsFile->findNext(T_WHITESPACE, $concat + 1, null, true);
+        $string = $phpcsFile->findNext([T_WHITESPACE, T_OPEN_PARENTHESIS], $concat + 1, null, true);
         if ($string === false || $tokens[$string]['code'] !== T_CONSTANT_ENCAPSED_STRING) {
             return;
         }

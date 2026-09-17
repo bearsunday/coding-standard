@@ -52,6 +52,10 @@ final class NoAppDirWritablePathSniffTest extends SniffTestCase
         // trading this rare case for not missing real occurrences under other
         // binding names (see line 22)
         $this->assertArrayHasKey(23, $errors, 'Expected error on line 23 (accepted false positive: unrelated appDir)');
+
+        // $this->appMeta->appDir . ('/var/tmp/cache') (line 24) → parenthesized
+        // literal; T_OPEN_PARENTHESIS must not hide the string from findNext()
+        $this->assertArrayHasKey(24, $errors, 'Expected error on line 24 (parenthesized /var/tmp literal)');
     }
 
     public function testSniffAllowsNonTmpAppDirConcatenation(): void
