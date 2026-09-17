@@ -20,5 +20,6 @@ class ProdModule extends AbstractModule
         $this->bind()->annotatedWith('legacyPath')->toInstance($this->appMeta->appDir . '/var/tmp-old');
         $this->bind()->annotatedWith('bareTmpPath')->toInstance($this->appMeta->appDir . '/var/tmp');
         $this->bind()->annotatedWith('otherBindingName')->toInstance($meta->appDir . '/var/tmp/cache');
+        $this->bind()->annotatedWith('unrelatedReceiverPath')->toInstance($this->cache->appDir . '/var/tmp/cache');
     }
 }

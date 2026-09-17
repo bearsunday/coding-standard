@@ -46,6 +46,12 @@ final class NoAppDirWritablePathSniffTest extends SniffTestCase
         // $meta->appDir . '/var/tmp/cache' (line 22) → detected regardless of the
         // AbstractAppMeta binding's variable name, not just $appMeta/$this->appMeta
         $this->assertArrayHasKey(22, $errors, 'Expected error on line 22 ($meta->appDir, non-appMeta binding name)');
+
+        // $this->cache->appDir . '/var/tmp/cache' (line 23) → accepted false positive:
+        // the sniff does not verify the receiver is actually an AbstractAppMeta,
+        // trading this rare case for not missing real occurrences under other
+        // binding names (see line 22)
+        $this->assertArrayHasKey(23, $errors, 'Expected error on line 23 (accepted false positive: unrelated appDir)');
     }
 
     public function testSniffAllowsNonTmpAppDirConcatenation(): void
