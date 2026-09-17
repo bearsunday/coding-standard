@@ -42,6 +42,10 @@ final class NoAppDirWritablePathSniffTest extends SniffTestCase
             $this->firstMessage($errors[21]),
             'Diagnostic must recommend plain tmpDir with no suffix appended',
         );
+
+        // $meta->appDir . '/var/tmp/cache' (line 22) → detected regardless of the
+        // AbstractAppMeta binding's variable name, not just $appMeta/$this->appMeta
+        $this->assertArrayHasKey(22, $errors, 'Expected error on line 22 ($meta->appDir, non-appMeta binding name)');
     }
 
     public function testSniffAllowsNonTmpAppDirConcatenation(): void
@@ -62,8 +66,6 @@ final class NoAppDirWritablePathSniffTest extends SniffTestCase
         $this->assertArrayNotHasKey(19, $errors, 'Should not error on appDir . build path');
         // $this->appMeta->appDir . '/var/tmp-old' (line 20) → not the /var/tmp segment, must not match by prefix
         $this->assertArrayNotHasKey(20, $errors, 'Should not error on appDir . /var/tmp-old path');
-        // $this->cache->appDir . '/var/tmp/cache' (line 22) → unrelated receiver, not $appMeta
-        $this->assertArrayNotHasKey(22, $errors, 'Should not error on unrelated object->appDir concatenation');
     }
 
     /** @param array<int, array<int, string>> $lineErrors */

@@ -183,8 +183,9 @@ the leading namespace separator.
 
 ### BearSunday.AppMeta.NoAppDirWritablePath
 
-**Trigger:** `$appMeta->appDir` concatenated with a string literal that is
-exactly `/var/tmp` or starts with `/var/tmp/`.
+**Trigger:** any `->appDir` property access (`$appMeta->appDir`,
+`$this->appMeta->appDir`, or another binding name) concatenated with a
+string literal that is exactly `/var/tmp` or starts with `/var/tmp/`.
 
 **Rule:** `/var/tmp` paths must be derived from `$appMeta->tmpDir`, not built
 by concatenating onto `$appMeta->appDir`.
