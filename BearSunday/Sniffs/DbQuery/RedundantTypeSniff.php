@@ -50,7 +50,7 @@ use const T_WHITESPACE;
  */
 final class RedundantTypeSniff implements Sniff
 {
-    private const array BUILTIN_TYPES = [
+    private const BUILTIN_TYPES = [
         'array',
         'bool',
         'callable',

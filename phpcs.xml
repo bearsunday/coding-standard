@@ -17,6 +17,8 @@
     <!-- Use Doctrine as the base (not BearSunday itself, to avoid circular dependency) -->
     <rule ref="Doctrine">
         <exclude name="SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing"/>
+        <!-- Typed class constants require PHP 8.3; this package targets php:^8.2 -->
+        <exclude name="SlevomatCodingStandard.TypeHints.ClassConstantTypeHint"/>
     </rule>
 
     <!-- Forbidden debug functions -->

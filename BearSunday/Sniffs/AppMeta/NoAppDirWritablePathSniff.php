@@ -45,7 +45,7 @@ use const T_WHITESPACE;
  */
 final class NoAppDirWritablePathSniff implements Sniff
 {
-    private const string TMP_PREFIX = '/var/tmp';
+    private const TMP_PREFIX = '/var/tmp';
 
     /** @return list<int> */
     public function register(): array
