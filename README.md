@@ -105,6 +105,74 @@ abstract class BasePageResource { ... }
 final class ArticlePageResource { ... }
 ```
 
+### BearSunday.Resources.StatusCodeConstant
+
+**Trigger:** `$this->code = <numeric literal>;` inside a file whose path
+contains `/Resource/`.
+
+**Rule:** use the matching `Koriym\HttpConstants\StatusCode` constant instead
+of a bare HTTP status number. Codes without a constant in that class (this
+package's `StatusCode` currently has no `422` or `429`, for example) are left
+alone — flagging them would tell you to write an undefined constant.
+
+**Auto-fixable** with `phpcbf`. The fixer always rewrites the literal to an
+absolute (`\`-prefixed) class reference, so it never depends on a `use`
+import being present in that file. If the resulting reference isn't already
+shortened by a `use` import, the inherited
+`SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly` rule adds one and
+shortens the reference on the next `phpcbf` pass.
+
+```php
+// Bad
+$this->code = 404;
+
+// Good
+$this->code = StatusCode::NOT_FOUND;
+```
+
+#### Configuration
+
+Override the suggested class name via `statusCodeClass` in your `phpcs.xml`
+if your project re-exports the constants under a different fully qualified
+class name.
+
+### BearSunday.Resources.HeaderConstant
+
+**Trigger:** `$this->headers['<Name>'] = ...;` inside a file whose path
+contains `/Resource/`.
+
+**Rule:** use the matching `Koriym\HttpConstants\ResponseHeader` constant
+instead of a string literal header name. Header names without a constant in
+that class (application-specific headers like `X-Request-Id`) are left alone.
+
+**Auto-fixable** with `phpcbf`, same as `StatusCodeConstant`: the fixer always
+emits an absolute (`\`-prefixed) class reference, so it never depends on a
+`use` import; the inherited `SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly`
+rule adds the `use` import and shortens the reference on the next `phpcbf` pass.
+
+```php
+// Bad
+$this->headers['Location'] = '/articles/1';
+
+// Good
+$this->headers[ResponseHeader::LOCATION] = '/articles/1';
+```
+
+#### Configuration
+
+Keep specific header names as string literals via `allowedHeaders`, and
+override the suggested class name via `headerClass`, in your `phpcs.xml`:
+
+```xml
+<rule ref="BearSunday.Resources.HeaderConstant">
+    <properties>
+        <property name="allowedHeaders" type="array">
+            <element value="Location"/>
+        </property>
+    </properties>
+</rule>
+```
+
 ### BearSunday.DbQuery.RedundantType
 
 **Trigger:** `#[DbQuery]` attributes that include a `type:` named argument.
@@ -216,7 +284,7 @@ vendor/bin/phpcs            # self-check (uses phpcs.xml)
 
 ## Reference
 
-- [BEAR.Package docs/coding-conventions.md](https://github.com/bearsunday/BEAR.Package/blob/1.x/docs/coding-conventions.md)
+- [BEAR.Sunday コーディングガイド](https://bearsunday.github.io/manuals/1.0/ja/coding-guide.html)
 - [MyVendor.Cms](https://github.com/bearsunday/MyVendor.Cms) — reference implementation
 - [Doctrine Coding Standard](https://github.com/doctrine/coding-standard)
 - [Slevomat Coding Standard](https://github.com/slevomat/coding-standard)
