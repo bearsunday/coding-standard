@@ -105,6 +105,71 @@ abstract class BasePageResource { ... }
 final class ArticlePageResource { ... }
 ```
 
+### BearSunday.Resources.StatusCodeConstant
+
+**Trigger:** `$this->code = <numeric literal>;` inside a file whose path
+contains `/Resource/`.
+
+**Rule:** use the matching `Koriym\HttpConstants\StatusCode` constant instead
+of a bare HTTP status number. Codes without a constant in that class (this
+package's `StatusCode` currently has no `422` or `429`, for example) are left
+alone — flagging them would tell you to write an undefined constant.
+
+**Auto-fixable** with `phpcbf`, but only when `StatusCode` is already
+`use`-imported in that file — the fixer rewrites the literal in place and
+never inserts a `use` statement, so it will not produce a reference to a
+class the file cannot resolve. When the import is missing, the violation is
+still reported (not auto-fixed); add the `use` statement and re-run `phpcbf`.
+
+```php
+// Bad
+$this->code = 404;
+
+// Good
+$this->code = StatusCode::NOT_FOUND;
+```
+
+#### Configuration
+
+Override the suggested class name via `statusCodeClass` in your `phpcs.xml`
+if your project aliases or re-exports the constants under a different name.
+
+### BearSunday.Resources.HeaderConstant
+
+**Trigger:** `$this->headers['<Name>'] = ...;` inside a file whose path
+contains `/Resource/`.
+
+**Rule:** use the matching `Koriym\HttpConstants\ResponseHeader` constant
+instead of a string literal header name. Header names without a constant in
+that class (application-specific headers like `X-Request-Id`) are left alone.
+
+**Auto-fixable** with `phpcbf` under the same condition as
+`StatusCodeConstant`: only when `ResponseHeader` is already `use`-imported in
+that file. No `use` statement is ever inserted by the fixer.
+
+```php
+// Bad
+$this->headers['Location'] = '/articles/1';
+
+// Good
+$this->headers[ResponseHeader::LOCATION] = '/articles/1';
+```
+
+#### Configuration
+
+Keep specific header names as string literals via `allowedHeaders`, and
+override the suggested class name via `headerClass`, in your `phpcs.xml`:
+
+```xml
+<rule ref="BearSunday.Resources.HeaderConstant">
+    <properties>
+        <property name="allowedHeaders" type="array">
+            <element value="Location"/>
+        </property>
+    </properties>
+</rule>
+```
+
 ### BearSunday.DbQuery.RedundantType
 
 **Trigger:** `#[DbQuery]` attributes that include a `type:` named argument.

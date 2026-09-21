@@ -10,6 +10,7 @@ use PHP_CodeSniffer\Ruleset;
 use PHPUnit\Framework\TestCase;
 
 use function dirname;
+use function reset;
 
 /**
  * Base class for PHPCS sniff unit tests.
@@ -23,13 +24,13 @@ use function dirname;
 abstract class SniffTestCase extends TestCase
 {
     /**
-     * Run a sniff (identified by its source file path) against a fixture file.
+     * Runs a sniff (identified by its source file path) against a fixture file
+     * and returns the processed PHPCS file, before either inspecting its
+     * diagnostics or running its fixer.
      *
      * @param array<string, mixed> $properties
-     *
-     * @return array{errors: array<int, mixed>, warnings: array<int, mixed>}
      */
-    protected function processSniff(string $sniffFile, string $fixtureFile, array $properties = []): array
+    private function processedFile(string $sniffFile, string $fixtureFile, array $properties): LocalFile
     {
         $config                  = new Config(['--standard=PSR1'], false);
         $ruleset                 = new Ruleset($config);
@@ -50,10 +51,39 @@ abstract class SniffTestCase extends TestCase
         $file = new LocalFile($fixtureFile, $ruleset, $config);
         $file->process();
 
+        return $file;
+    }
+
+    /**
+     * Run a sniff (identified by its source file path) against a fixture file.
+     *
+     * @param array<string, mixed> $properties
+     *
+     * @return array{errors: array<int, mixed>, warnings: array<int, mixed>}
+     */
+    protected function processSniff(string $sniffFile, string $fixtureFile, array $properties = []): array
+    {
+        $file = $this->processedFile($sniffFile, $fixtureFile, $properties);
+
         return [
             'errors'   => $file->getErrors(),
             'warnings' => $file->getWarnings(),
         ];
+    }
+
+    /**
+     * Runs a sniff's fixer against a fixture file and returns the resulting
+     * source, so a fix's actual output — not just its `fixable` flag — is
+     * exercised by tests.
+     *
+     * @param array<string, mixed> $properties
+     */
+    protected function fixFile(string $sniffFile, string $fixtureFile, array $properties = []): string
+    {
+        $file = $this->processedFile($sniffFile, $fixtureFile, $properties);
+        $file->fixer->fixFile();
+
+        return $file->fixer->getContents();
     }
 
     /**
@@ -62,5 +92,26 @@ abstract class SniffTestCase extends TestCase
     protected function sniffPath(string $category, string $name): string
     {
         return dirname(__DIR__) . '/Sniffs/' . $category . '/' . $name . '.php';
+    }
+
+    /**
+     * Returns the first error entry recorded on the given line, regardless of
+     * column, or null when the line has no errors. Useful for asserting on
+     * error metadata (e.g. `fixable`) without hard-coding column numbers.
+     *
+     * @param array<int, array<int, list<array<string, mixed>>>> $errors
+     *
+     * @return array<string, mixed>|null
+     */
+    protected function firstErrorOnLine(array $errors, int $line): array|null
+    {
+        if (! isset($errors[$line])) {
+            return null;
+        }
+
+        $columns = $errors[$line];
+        $first   = reset($columns);
+
+        return $first === false ? null : $first[0];
     }
 }
