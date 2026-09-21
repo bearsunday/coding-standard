@@ -6,9 +6,35 @@ Extends [Doctrine Coding Standard](https://github.com/doctrine/coding-standard) 
 
 ## Installation
 
-```bash
-composer require --dev bear/conding-standard
+Not yet published on Packagist. The package is currently registered under
+`bear/conding-standard` in `composer.json` — a typo of the intended
+`bearsunday/coding-standard` that hasn't been renamed yet. Use the name as
+it actually is today; update this snippet if/when the package is renamed.
+
+Add it as a VCS repository and require the `1.x` branch:
+
+```json
+{
+    "repositories": {
+        "bear/conding-standard": {
+            "type": "vcs",
+            "url": "https://github.com/bearsunday/coding-standard.git"
+        }
+    },
+    "require-dev": {
+        "bear/conding-standard": "1.x-dev"
+    }
+}
 ```
+
+```bash
+composer update bear/conding-standard --with-all-dependencies
+```
+
+The `--with-all-dependencies` flag is only needed the first time, to let
+Composer raise `squizlabs/php_codesniffer`, `doctrine/coding-standard`, and
+`slevomat/coding-standard` to the versions this package requires if your
+project pins older ones.
 
 The `dealerdirect/phpcodesniffer-composer-installer` plugin auto-registers the standard. After install, `BearSunday` is available as a PHPCS standard name.
 
@@ -29,6 +55,73 @@ The `dealerdirect/phpcodesniffer-composer-installer` plugin auto-registers the s
 
 ```bash
 vendor/bin/phpcs --standard=BearSunday src/
+```
+
+### Scoping path-sensitive sniffs
+
+Six sniffs gate on a loose substring match against the file path —
+`ReturnStatic`, `NoSuperglobals`, `NoAbstractResource`, `HeaderConstant`, and
+`StatusCodeConstant` trigger on any path containing `/Resource/`; `NoNewService`
+triggers on `/Resource/`, `/Service/`, or `/Domain/`. This also matches
+test-mirror directories such as `tests/Resource/ArticleTest.php`, which is
+rarely what you want.
+
+To scope a sniff to your actual source layout, add a narrower sibling
+`<rule ref>` with an `include-pattern` — PHPCS applies it cumulatively even
+though the sniff is already pulled in by the broader `<rule ref="BearSunday"/>`:
+
+```xml
+<rule ref="BearSunday.Resources.NoSuperglobals">
+    <include-pattern>src/*Resource/*</include-pattern>
+</rule>
+```
+
+Use `src/*Resource/*`, not `src/Resource/*` — the leading `*` after `src/`
+tolerates nesting before the target segment, which a literal prefix pattern
+silently misses. This matters most for `NoNewService`, whose three trigger
+segments need their own patterns:
+
+```xml
+<rule ref="BearSunday.Di.NoNewService">
+    <include-pattern>src/*Resource/*</include-pattern>
+    <include-pattern>src/*Service/*</include-pattern>
+    <include-pattern>src/*Domain/*</include-pattern>
+</rule>
+```
+
+Without the leading `*`, `src/Service/*` would miss a real file like
+`src/Datadog/Service/Foo.php`, where `Service` is nested under another
+directory instead of appearing directly under `src/`.
+
+### Disabling or exempting individual rules
+
+Don't want a specific rule at all — for example a project with no plans to
+adopt constructor-only DI enforcement? Exclude it by name inside the
+`<rule ref="BearSunday"/>` block:
+
+```xml
+<rule ref="BearSunday">
+    <exclude name="BearSunday.Di.NoNewService"/>
+</rule>
+```
+
+This turns the rule off entirely; every other `BearSunday.*` sniff stays
+active.
+
+For a lighter touch — keep the rule, but exempt specific cases — most sniffs
+expose their own properties instead (see each sniff's own section above for
+the full list): `NoNewService` has `allowedClasses`/`allowedSuffixes`,
+`HeaderConstant` has `allowedHeaders`. For example, to allow `new
+StructuredData(...)` without disabling `NoNewService` for anything else:
+
+```xml
+<rule ref="BearSunday.Di.NoNewService">
+    <properties>
+        <property name="allowedClasses" type="array">
+            <element value="StructuredData"/>
+        </property>
+    </properties>
+</rule>
 ```
 
 ## What's included
@@ -54,6 +147,18 @@ Use Xdebug tracing / profiling for debugging.
 
 `ResourceObject` subclasses form fluent chains. Returning `self` breaks
 inheritance; omitting the type drops static analysis coverage.
+
+**Auto-fixable** with `phpcbf`: inserts `: static` when the return type is
+missing, or replaces an existing `self`/`ResourceObject`/other declared type
+with `static`, preserving surrounding whitespace and brace placement.
+
+The fix is purely syntactic — it rewrites the declared type without checking
+what the method actually returns. Narrowing `: ResourceObject` (or a missing
+type) to `: static` is only safe at runtime if the method returns `$this` (or
+another same-class instance); a handler that returns a *different*
+`ResourceObject` would start throwing a `TypeError` after the fix is applied.
+Run your test suite after any bulk `phpcbf` pass using this sniff rather than
+trusting the fixer alone.
 
 ```php
 // Bad
