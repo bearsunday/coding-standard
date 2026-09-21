@@ -38,5 +38,6 @@
     <rule ref="BearSunday.Resources.HeaderConstant"/>
     <rule ref="BearSunday.DbQuery.RedundantType"/>
     <rule ref="BearSunday.Di.NoNewService"/>
+    <rule ref="BearSunday.Di.NoImplicitNow"/>
     <rule ref="BearSunday.AppMeta.NoAppDirWritablePath"/>
 </ruleset>

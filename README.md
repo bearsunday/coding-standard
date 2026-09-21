@@ -59,12 +59,12 @@ vendor/bin/phpcs --standard=BearSunday src/
 
 ### Scoping path-sensitive sniffs
 
-Six sniffs gate on a loose substring match against the file path —
+Seven sniffs gate on a loose substring match against the file path —
 `ReturnStatic`, `NoSuperglobals`, `NoAbstractResource`, `HeaderConstant`, and
 `StatusCodeConstant` trigger on any path containing `/Resource/`; `NoNewService`
-triggers on `/Resource/`, `/Service/`, or `/Domain/`. This also matches
-test-mirror directories such as `tests/Resource/ArticleTest.php`, which is
-rarely what you want.
+and `NoImplicitNow` trigger on `/Resource/`, `/Service/`, or `/Domain/`. This
+also matches test-mirror directories such as `tests/Resource/ArticleTest.php`,
+which is rarely what you want.
 
 To scope a sniff to your actual source layout, add a narrower sibling
 `<rule ref>` with an `include-pattern` — PHPCS applies it cumulatively even
@@ -353,6 +353,37 @@ Extend the allow-list via `allowedClasses` or `allowedSuffixes` in your `phpcs.x
 
 `allowedClasses` accepts short class names or fully qualified class names without
 the leading namespace separator.
+
+### BearSunday.Di.NoImplicitNow
+
+**Trigger:** `new DateTime()` / `new DateTimeImmutable()` with zero arguments,
+or with a single `'now'` string argument, inside a file whose path contains
+`/Resource/`, `/Service/`, or `/Domain/`.
+
+**Rule:** reading the wall clock directly makes the class non-deterministic
+and untestable at a fixed point in time. Inject the current time instead
+(e.g. a `DateTimeInterface` parameter bound via `ray/identity-value-module`'s
+`IdentityValueModule`).
+
+`new DateTime($string)` / `new DateTimeImmutable($string)` with any other
+explicit argument is unaffected — only the "current moment" forms are
+flagged.
+
+```php
+// Bad — inside Domain/
+public function isValid(): bool
+{
+    return $this->datePublished < new DateTimeImmutable();
+}
+
+// Good — current time injected as a DateTimeInterface
+public function __construct(private readonly DateTimeInterface $now) {}
+
+public function isValid(): bool
+{
+    return $this->datePublished < $this->now;
+}
+```
 
 ### BearSunday.AppMeta.NoAppDirWritablePath
 
