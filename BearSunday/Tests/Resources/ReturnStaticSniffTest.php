@@ -74,4 +74,37 @@ final class ReturnStaticSniffTest extends SniffTestCase
         $this->assertArrayNotHasKey(10, $errors, 'Should not error on line 10 (static return)');
         $this->assertArrayNotHasKey(39, $errors, 'Should not error on line 39 (static return)');
     }
+
+    public function testSniffFixesWrongReturnType(): void
+    {
+        $fixed = $this->fixFile(
+            $this->sniffPath('Resources', 'ReturnStaticSniff'),
+            $this->tempFile,
+        );
+
+        $this->assertStringContainsString(
+            'public function onPost(string $slug): static',
+            $fixed,
+            'Fixer must replace "self" with "static"',
+        );
+        $this->assertStringContainsString(
+            'public function onDelete(int $id): static',
+            $fixed,
+            'Fixer must replace "ResourceObject" with "static"',
+        );
+    }
+
+    public function testSniffFixesMissingReturnType(): void
+    {
+        $fixed = $this->fixFile(
+            $this->sniffPath('Resources', 'ReturnStaticSniff'),
+            $this->tempFile,
+        );
+
+        $this->assertStringContainsString(
+            'public function onPut(int $id): static',
+            $fixed,
+            'Fixer must insert ": static" when no return type is declared',
+        );
+    }
 }
