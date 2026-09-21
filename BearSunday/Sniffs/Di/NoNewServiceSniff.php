@@ -12,13 +12,13 @@ use function ltrim;
 use function str_contains;
 use function str_ends_with;
 use function str_replace;
-use function str_starts_with;
 use function strrpos;
 use function substr;
 
 use const T_CLOSE_CURLY_BRACKET;
 use const T_NAME_FULLY_QUALIFIED;
 use const T_NAME_QUALIFIED;
+use const T_NAME_RELATIVE;
 use const T_NEW;
 use const T_NS_SEPARATOR;
 use const T_OPEN_CURLY_BRACKET;
@@ -188,12 +188,7 @@ final class NoNewServiceSniff implements Sniff
             return true;
         }
 
-        // DateTime* (DateTime, DateTimeImmutable, DateTimeInterface subclasses)
-        if (str_starts_with($bareClass, 'DateTime')) {
-            return true;
-        }
-
-        // DateInterval, DateTimeZone
+        // DateTime, DateTimeImmutable, DateTimeInterface, DateInterval, DateTimeZone
         if (in_array($bareClass, self::ALLOWED_DATE_CLASSES, true)) {
             return true;
         }
@@ -279,8 +274,8 @@ final class NoNewServiceSniff implements Sniff
             return $tokens[$next]['content'];
         }
 
-        // PHP 8 tokenizes `\Foo\Bar` / `Foo\Bar` as a single name token
-        if ($code === T_NAME_FULLY_QUALIFIED || $code === T_NAME_QUALIFIED) {
+        // PHP 8 tokenizes `\Foo\Bar` / `Foo\Bar` / `namespace\Foo` as a single name token
+        if ($code === T_NAME_FULLY_QUALIFIED || $code === T_NAME_QUALIFIED || $code === T_NAME_RELATIVE) {
             return $tokens[$next]['content'];
         }
 

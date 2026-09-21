@@ -52,6 +52,7 @@ final class NoNewServiceSniffTest extends SniffTestCase
         $this->assertArrayHasKey(65, $errors, 'Expected error on line 65 (new LegacyFactory, unconfigured)');
         $this->assertArrayHasKey(71, $errors, 'Expected error on line 71 (new ExternalClient, unconfigured)');
         $this->assertArrayHasKey(77, $errors, 'Expected error on line 77 (new Sub\OtherService, qualified name)');
+        $this->assertArrayHasKey(83, $errors, 'Expected error on line 83 (new namespace\RelativeService)');
     }
 
     public function testSniffAllowsValueObjects(): void

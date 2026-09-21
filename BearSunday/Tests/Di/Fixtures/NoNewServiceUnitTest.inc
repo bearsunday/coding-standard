@@ -76,4 +76,10 @@ class ArticleService
     {
         return new Sub\OtherService();
     }
+
+    // ERROR: namespace-relative class name via new
+    public function relativeService(): \Fixtures\Service\RelativeService
+    {
+        return new namespace\RelativeService();
+    }
 }
