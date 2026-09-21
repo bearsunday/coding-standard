@@ -49,6 +49,9 @@ final class NoNewServiceSniffTest extends SniffTestCase
 
         $this->assertArrayHasKey(32, $errors, 'Expected error on line 32 (new OtherService)');
         $this->assertArrayHasKey(38, $errors, 'Expected error on line 38 (new ArticleRepository)');
+        $this->assertArrayHasKey(65, $errors, 'Expected error on line 65 (new LegacyFactory, unconfigured)');
+        $this->assertArrayHasKey(71, $errors, 'Expected error on line 71 (new ExternalClient, unconfigured)');
+        $this->assertArrayHasKey(77, $errors, 'Expected error on line 77 (new Sub\OtherService, qualified name)');
     }
 
     public function testSniffAllowsValueObjects(): void
@@ -85,5 +88,27 @@ final class NoNewServiceSniffTest extends SniffTestCase
         $this->assertArrayNotHasKey(44, $errors, 'Should not error on line 44 (throw expression)');
         $this->assertArrayNotHasKey(52, $errors, 'Should not error on line 52 (match throw expression)');
         $this->assertArrayNotHasKey(59, $errors, 'Should not error on line 59 (arrow function throw expression)');
+    }
+
+    public function testSniffAllowsConfiguredClasses(): void
+    {
+        $result = $this->processSniff(
+            $this->sniffPath('Di', 'NoNewServiceSniff'),
+            $this->tempFile,
+            [
+                'allowedClasses' => [
+                    'LegacyFactory',
+                    'Fixtures\\Service\\ExternalClient',
+                ],
+            ],
+        );
+        $errors = $result['errors'];
+
+        // Line 65: new LegacyFactory() → allowed by short class name
+        $this->assertArrayNotHasKey(65, $errors, 'Should not error on line 65 (configured LegacyFactory)');
+        // Line 71: new \Fixtures\Service\ExternalClient() → allowed by FQCN
+        $this->assertArrayNotHasKey(71, $errors, 'Should not error on line 71 (configured ExternalClient)');
+        // Line 32: new OtherService() → still forbidden
+        $this->assertArrayHasKey(32, $errors, 'Expected error on line 32 (new OtherService)');
     }
 }

@@ -12,8 +12,13 @@ use function ltrim;
 use function str_contains;
 use function str_ends_with;
 use function str_replace;
+use function str_starts_with;
+use function strrpos;
+use function substr;
 
 use const T_CLOSE_CURLY_BRACKET;
+use const T_NAME_FULLY_QUALIFIED;
+use const T_NAME_QUALIFIED;
 use const T_NEW;
 use const T_NS_SEPARATOR;
 use const T_OPEN_CURLY_BRACKET;
@@ -38,7 +43,7 @@ use const T_WHITESPACE;
  *   - Date/time classes: DateTime, DateTimeImmutable, DateTimeInterface, DateInterval, DateTimeZone
  *   - SPL classes listed in ALLOWED_SPL_CLASSES
  *   - throw new ... expressions (domain exceptions must be thrown, not injected)
- *   - Configurable via $allowedSuffixes property
+ *   - Configurable via $allowedClasses and $allowedSuffixes properties
  *
  * Trigger paths: <code>/Resource/</code>, <code>/Service/</code>, <code>/Domain/</code>
  * Excluded paths: <code>/Module/</code>, <code>/Provider/</code>, <code>/Factory/</code>
@@ -58,6 +63,21 @@ final class NoNewServiceSniff implements Sniff
      * @var list<string>
      */
     public array $allowedSuffixes = [];
+
+    /**
+     * Specific class names to allow.
+     * Configure in ruleset.xml:
+     *   <property name="allowedClasses" type="array">
+     *     <element value="LegacyFactory"/>
+     *     <element value="Vendor\Package\Clock"/>
+     *   </property>
+     *
+     * Values may be short class names or fully qualified class names without
+     * the leading namespace separator.
+     *
+     * @var list<string>
+     */
+    public array $allowedClasses = [];
 
     private const ALLOWED_SUFFIXES = [
         'Input',
@@ -164,6 +184,16 @@ final class NoNewServiceSniff implements Sniff
 
     private function isAllowed(string $bareClass): bool
     {
+        if ($this->isAllowedClass($bareClass)) {
+            return true;
+        }
+
+        // DateTime* (DateTime, DateTimeImmutable, DateTimeInterface subclasses)
+        if (str_starts_with($bareClass, 'DateTime')) {
+            return true;
+        }
+
+        // DateInterval, DateTimeZone
         if (in_array($bareClass, self::ALLOWED_DATE_CLASSES, true)) {
             return true;
         }
@@ -187,6 +217,30 @@ final class NoNewServiceSniff implements Sniff
         }
 
         return false;
+    }
+
+    private function isAllowedClass(string $bareClass): bool
+    {
+        $shortClass = $this->shortClassName($bareClass);
+
+        foreach ($this->allowedClasses as $allowedClass) {
+            $normalizedAllowedClass = ltrim($allowedClass, '\\');
+            if ($normalizedAllowedClass === $bareClass || $normalizedAllowedClass === $shortClass) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private function shortClassName(string $className): string
+    {
+        $lastSeparator = strrpos($className, '\\');
+        if ($lastSeparator === false) {
+            return $className;
+        }
+
+        return substr($className, $lastSeparator + 1);
     }
 
     private function isThrowContext(File $phpcsFile, int $stackPtr): bool
@@ -222,6 +276,11 @@ final class NoNewServiceSniff implements Sniff
         // Handle static/self/parent keywords
         $code = $tokens[$next]['code'];
         if (in_array($code, [T_STATIC, T_SELF, T_PARENT], true)) {
+            return $tokens[$next]['content'];
+        }
+
+        // PHP 8 tokenizes `\Foo\Bar` / `Foo\Bar` as a single name token
+        if ($code === T_NAME_FULLY_QUALIFIED || $code === T_NAME_QUALIFIED) {
             return $tokens[$next]['content'];
         }
 

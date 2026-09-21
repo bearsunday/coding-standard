@@ -58,4 +58,22 @@ class ArticleService
     {
         return static fn () => throw new OtherService();
     }
+
+    // ERROR by default, allowed when configured by short class name
+    public function legacyFactory(): LegacyFactory
+    {
+        return new LegacyFactory();
+    }
+
+    // ERROR by default, allowed when configured by fully qualified class name
+    public function externalClient(): \Fixtures\Service\ExternalClient
+    {
+        return new \Fixtures\Service\ExternalClient();
+    }
+
+    // ERROR: qualified (non-fully-qualified) class name via new
+    public function subService(): Sub\OtherService
+    {
+        return new Sub\OtherService();
+    }
 }
