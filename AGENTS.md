@@ -17,7 +17,7 @@ Do not commit `vendor/` or PHPUnit cache files.
 
 ## Coding Style & Naming Conventions
 
-Use PHP `^8.2` (per `composer.json`) with `declare(strict_types=1);`. Follow the self-check in `phpcs.xml`, which extends Doctrine Coding Standard (Slevomat rules arrive transitively through Doctrine, not selected separately) with two Slevomat sniffs excluded. Keep sniffs `final`, place them in the `BearSunday\Sniffs\<Category>` namespace, and name them `<RuleName>Sniff`. Test classes should be `final` and named `<RuleName>SniffTest` in the matching `BearSunday\Tests\<Category>` namespace. Prefer explicit imports for global functions when the surrounding files do so.
+Use PHP `^8.2` (per `composer.json`) with `declare(strict_types=1);`. Follow the self-check in `phpcs.xml`, which selects Doctrine Coding Standard as its base ruleset — Doctrine's own ruleset activates Slevomat sniffs, with two excluded here. Note `slevomat/coding-standard` is a direct Composer dependency in its own right (not merely pulled in transitively through Doctrine's package graph); do not remove it. Keep sniffs `final`, place them in the `BearSunday\Sniffs\<Category>` namespace, and name them `<RuleName>Sniff`. Test classes should be `final` and named `<RuleName>SniffTest` in the matching `BearSunday\Tests\<Category>` namespace. Prefer explicit imports for global functions when the surrounding files do so.
 
 `PHP_CodeSniffer\Sniffs\Sniff::process()` types `$stackPtr` as `int` in PHPCS 4 — match it with a native type hint. After any dependency update, verify against the installed interface (`vendor/squizlabs/php_codesniffer/src/Sniffs/Sniff.php`) rather than assuming the signature.
 
