@@ -16,7 +16,8 @@ use function unlink;
 
 final class HeaderConstantSniffTest extends SniffTestCase
 {
-    private string $tempFile = '';
+    private string $tempFile         = '';
+    private string $noImportTempFile = '';
 
     protected function setUp(): void
     {
@@ -27,15 +28,22 @@ final class HeaderConstantSniffTest extends SniffTestCase
 
         $this->tempFile = $dir . '/ArticleResourceHeaderTest.php';
         copy(dirname(__DIR__) . '/Resources/Fixtures/HeaderConstantUnitTest.inc', $this->tempFile);
+
+        $this->noImportTempFile = $dir . '/ArticleResourceHeaderNoImportTest.php';
+        copy(dirname(__DIR__) . '/Resources/Fixtures/HeaderConstantNoImportUnitTest.inc', $this->noImportTempFile);
     }
 
     protected function tearDown(): void
     {
-        if (! file_exists($this->tempFile)) {
+        if (file_exists($this->tempFile)) {
+            unlink($this->tempFile);
+        }
+
+        if (! file_exists($this->noImportTempFile)) {
             return;
         }
 
-        unlink($this->tempFile);
+        unlink($this->noImportTempFile);
     }
 
     public function testSniffDetectsStringHeaderName(): void
@@ -106,6 +114,21 @@ final class HeaderConstantSniffTest extends SniffTestCase
             "\$this->headers[\Koriym\HttpConstants\ResponseHeader::LOCATION] = '/articles/1';",
             $fixed,
             'Fixer must rewrite the literal in place using an absolute class reference',
+        );
+        $this->assertStringNotContainsString("\$this->headers['Location'] = '/articles/1';", $fixed);
+    }
+
+    public function testSniffFixesTheLiteralWithoutAUseImport(): void
+    {
+        $fixed = $this->fixFile(
+            $this->sniffPath('Resources', 'HeaderConstantSniff'),
+            $this->noImportTempFile,
+        );
+
+        $this->assertStringContainsString(
+            "\$this->headers[\Koriym\HttpConstants\ResponseHeader::LOCATION] = '/articles/1';",
+            $fixed,
+            'Fixer must emit an absolute reference even when the class is not use-imported',
         );
         $this->assertStringNotContainsString("\$this->headers['Location'] = '/articles/1';", $fixed);
     }

@@ -11,6 +11,8 @@ use PHP_CodeSniffer\Util\Tokens;
 use function array_key_exists;
 use function ltrim;
 use function str_contains;
+use function strrpos;
+use function substr;
 
 use const T_EQUAL;
 use const T_LNUMBER;
@@ -117,12 +119,14 @@ final class StatusCodeConstantSniff implements Sniff
 
         $configuredClass = $this->statusCodeClass;
         $fqcn            = '\\' . ltrim($configuredClass, '\\');
+        $lastSeparator   = strrpos($configuredClass, '\\');
+        $shortClass      = $lastSeparator === false ? $configuredClass : substr($configuredClass, $lastSeparator + 1);
 
         $fix = $phpcsFile->addFixableError(
             'HTTP status code %d must be written as %s::%s, not a numeric literal.',
             $literalPtr,
             'MagicStatusCode',
-            [$code, $configuredClass, self::CONSTANTS[$code]],
+            [$code, $shortClass, self::CONSTANTS[$code]],
         );
 
         if (! $fix) {

@@ -12,7 +12,9 @@ use function in_array;
 use function ltrim;
 use function str_contains;
 use function str_replace;
+use function strrpos;
 use function strtoupper;
+use function substr;
 use function trim;
 
 use const T_CLOSE_SQUARE_BRACKET;
@@ -134,12 +136,14 @@ final class HeaderConstantSniff implements Sniff
 
         $configuredClass = $this->headerClass;
         $fqcn            = '\\' . ltrim($configuredClass, '\\');
+        $lastSeparator   = strrpos($configuredClass, '\\');
+        $shortClass      = $lastSeparator === false ? $configuredClass : substr($configuredClass, $lastSeparator + 1);
 
         $fix = $phpcsFile->addFixableError(
             'Header name "%s" must be written as %s::%s, not a string literal.',
             $keyPtr,
             'StringHeaderName',
-            [$header, $configuredClass, $constant],
+            [$header, $shortClass, $constant],
         );
 
         if (! $fix) {
