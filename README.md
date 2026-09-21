@@ -141,8 +141,8 @@ injection, not direct `new`.
 
 **Allow-list (no error):**
 - Class names ending in `Input`, `Dto`, `Entity`, `ValueObject`, `Exception`
-- `DateTime*`, `DateInterval`, `DateTimeZone`
-- Class names starting with `Spl`
+- `DateTime`, `DateTimeImmutable`, `DateTimeInterface`, `DateInterval`, `DateTimeZone`
+- SPL classes: `SplDoublyLinkedList`, `SplFileInfo`, `SplFileObject`, `SplFixedArray`, `SplHeap`, `SplMaxHeap`, `SplMinHeap`, `SplObjectStorage`, `SplObserver`, `SplPriorityQueue`, `SplQueue`, `SplStack`, `SplSubject`, `SplTempFileObject`
 - `throw new ...` expressions
 - Classes listed in `allowedClasses`
 

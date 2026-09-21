@@ -25,9 +25,11 @@ abstract class SniffTestCase extends TestCase
     /**
      * Run a sniff (identified by its source file path) against a fixture file.
      *
+     * @param array<string, mixed> $properties
+     *
      * @return array{errors: array<int, mixed>, warnings: array<int, mixed>}
      */
-    protected function processSniff(string $sniffFile, string $fixtureFile): array
+    protected function processSniff(string $sniffFile, string $fixtureFile, array $properties = []): array
     {
         $config                  = new Config(['--standard=PSR1'], false);
         $ruleset                 = new Ruleset($config);
@@ -35,6 +37,15 @@ abstract class SniffTestCase extends TestCase
         $ruleset->tokenListeners = [];
         $ruleset->registerSniffs([$sniffFile], [], []);
         $ruleset->populateTokenListeners();
+
+        foreach ($ruleset->sniffs as $sniffClass => $_sniff) {
+            foreach ($properties as $name => $value) {
+                $ruleset->setSniffProperty($sniffClass, $name, [
+                    'scope' => 'sniff',
+                    'value' => $value,
+                ]);
+            }
+        }
 
         $file = new LocalFile($fixtureFile, $ruleset, $config);
         $file->process();
