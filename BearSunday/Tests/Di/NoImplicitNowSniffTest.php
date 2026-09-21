@@ -16,9 +16,10 @@ use function unlink;
 
 final class NoImplicitNowSniffTest extends SniffTestCase
 {
-    private string $tempFile     = '';
-    private string $aliasFile    = '';
-    private string $noImportFile = '';
+    private string $tempFile           = '';
+    private string $aliasFile          = '';
+    private string $noImportFile       = '';
+    private string $multiNamespaceFile = '';
 
     protected function setUp(): void
     {
@@ -36,11 +37,14 @@ final class NoImplicitNowSniffTest extends SniffTestCase
 
         $this->noImportFile = $dir . '/NoImportTest.php';
         copy(dirname(__DIR__) . '/Di/Fixtures/NoImplicitNowNoImportUnitTest.inc', $this->noImportFile);
+
+        $this->multiNamespaceFile = $dir . '/MultiNamespaceTest.php';
+        copy(dirname(__DIR__) . '/Di/Fixtures/NoImplicitNowMultiNamespaceUnitTest.inc', $this->multiNamespaceFile);
     }
 
     protected function tearDown(): void
     {
-        foreach ([$this->tempFile, $this->aliasFile, $this->noImportFile] as $file) {
+        foreach ([$this->tempFile, $this->aliasFile, $this->noImportFile, $this->multiNamespaceFile] as $file) {
             if (! file_exists($file)) {
                 continue;
             }
@@ -215,14 +219,9 @@ final class NoImplicitNowSniffTest extends SniffTestCase
      * bypass). NoImplicitNow flags a subset of the same constructs when they
      * read "now". The two sniffs must not contradict each other on the same
      * code: pin that NoNewService stays silent on every DateTime construct in
-     * the main fixture, including every line NoImplicitNow flags.
-     *
-     * Line 58 (`new \DATETIMEIMMUTABLE('NOW')`) is intentionally excluded:
-     * NoNewService's own date-class allow-list check is case-sensitive and
-     * does not recognize the all-caps class name as DateTimeImmutable, so it
-     * flags that line as a service instantiation. That is a pre-existing,
-     * separate gap in NoNewServiceSniff (PHP class names are case-insensitive)
-     * and out of scope for this sniff/PR -- not asserted here either way.
+     * the main fixture, including every line NoImplicitNow flags -- including
+     * the case-insensitive line 58, now that NoNewService's own date-class
+     * allow-list check is also case-insensitive.
      */
     public function testNoNewServiceAllowsSameDateTimeConstructs(): void
     {
@@ -232,12 +231,38 @@ final class NoImplicitNowSniffTest extends SniffTestCase
         );
         $errors = $result['errors'];
 
-        foreach ([17, 18, 28, 29, 31, 40, 46, 52, 64, 70, 76] as $line) {
+        foreach ([17, 18, 28, 29, 31, 40, 46, 52, 58, 64, 70, 76] as $line) {
             $this->assertArrayNotHasKey(
                 $line,
                 $errors,
                 'NoNewService should never flag DateTime construction (line ' . $line . ')',
             );
         }
+    }
+
+    public function testSniffDetectsImplicitNowInFirstNamespaceBlock(): void
+    {
+        $result = $this->processSniff(
+            $this->sniffPath('Di', 'NoImplicitNowSniff'),
+            $this->multiNamespaceFile,
+        );
+        $errors = $result['errors'];
+
+        $this->assertArrayHasKey(12, $errors, 'Expected error on line 12 (DateTime imported in this namespace block)');
+    }
+
+    public function testSniffDoesNotLeakUseImportAcrossNamespaceBlocks(): void
+    {
+        $result = $this->processSniff(
+            $this->sniffPath('Di', 'NoImplicitNowSniff'),
+            $this->multiNamespaceFile,
+        );
+        $errors = $result['errors'];
+
+        $this->assertArrayNotHasKey(
+            25,
+            $errors,
+            'Should not error: the second namespace block has no use import of its own',
+        );
     }
 }

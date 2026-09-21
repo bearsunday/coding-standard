@@ -67,11 +67,11 @@ use const T_WHITESPACE;
  * `namespace App\Domain;` with no matching `use DateTime;` import does NOT
  * refer to the global class and is correctly left unflagged.
  *
- * One residual, inherent limitation: if the current namespace itself defines
- * (elsewhere in the project) its own class literally named `DateTime` or
- * `DateTimeImmutable` with no `use` import shadowing it, this sniff cannot
- * detect that from a single file's tokens alone -- doing so would require a
- * project-wide symbol index, which is out of scope for a PHPCS sniff.
+ * Multiple non-bracketed `namespace X;` declarations in one file are each
+ * scoped independently: a `new` expression resolves against the nearest
+ * preceding `namespace` declaration and only the `use` imports that follow
+ * it (up to the next `namespace` declaration or end of file), not imports
+ * belonging to an earlier block.
  *
  * Trigger paths: <code>/Resource/</code>, <code>/Service/</code>, <code>/Domain/</code>
  * Excluded paths: <code>/Module/</code>, <code>/Provider/</code>, <code>/Factory/</code>
@@ -115,7 +115,7 @@ final class NoImplicitNowSniff implements Sniff
 
         [$rawName, $afterNamePtr] = $read;
 
-        $absoluteName = $this->resolveAbsoluteClassName($phpcsFile, $rawName, $tokenCode);
+        $absoluteName = $this->resolveAbsoluteClassName($phpcsFile, $rawName, $tokenCode, $stackPtr);
         if (! in_array(strtolower($absoluteName), self::DATE_CLASSES, true)) {
             return;
         }
@@ -177,9 +177,12 @@ final class NoImplicitNowSniff implements Sniff
      * fall back to the global namespace: an unqualified or qualified name
      * resolves against the file's `use` imports first, then the current
      * namespace; only a name with no matching import and an empty current
-     * namespace stays as literally written (i.e. already global).
+     * namespace stays as literally written (i.e. already global). $stackPtr
+     * scopes both lookups to the namespace block enclosing the `new`
+     * expression, so an earlier `namespace X;` block's `use` imports never
+     * leak into a later one.
      */
-    private function resolveAbsoluteClassName(File $phpcsFile, string $rawName, int $tokenCode): string
+    private function resolveAbsoluteClassName(File $phpcsFile, string $rawName, int $tokenCode, int $stackPtr): string
     {
         if ($tokenCode === T_NAME_FULLY_QUALIFIED) {
             return ltrim($rawName, '\\');
@@ -187,7 +190,7 @@ final class NoImplicitNowSniff implements Sniff
 
         if ($tokenCode === T_NAME_RELATIVE) {
             $withoutPrefix = (string) preg_replace('/^namespace\\\\/i', '', $rawName);
-            $namespace     = $this->collectNamespace($phpcsFile);
+            $namespace     = $this->collectNamespace($phpcsFile, $stackPtr);
 
             return $namespace === '' ? $withoutPrefix : $namespace . '\\' . $withoutPrefix;
         }
@@ -196,27 +199,24 @@ final class NoImplicitNowSniff implements Sniff
         $firstSegment   = $firstSeparator === false ? $rawName : substr($rawName, 0, $firstSeparator);
         $remainder      = $firstSeparator === false ? '' : substr($rawName, $firstSeparator);
 
-        $aliased = $this->collectUseAliases($phpcsFile)[strtolower($firstSegment)] ?? null;
+        $aliased = $this->collectUseAliases($phpcsFile, $stackPtr)[strtolower($firstSegment)] ?? null;
         if ($aliased !== null) {
             return $aliased . $remainder;
         }
 
-        $namespace = $this->collectNamespace($phpcsFile);
+        $namespace = $this->collectNamespace($phpcsFile, $stackPtr);
 
         return $namespace === '' ? $rawName : $namespace . '\\' . $rawName;
     }
 
     /**
-     * The file's leading `namespace X;` (or bracketed `namespace X { ... }`)
-     * declaration, without the leading backslash. Empty string for the global
-     * namespace or a file with no declaration. A file with multiple bracketed
-     * namespace blocks is treated as having just the first one -- BEAR.Sunday
-     * files never use that rare, PSR-discouraged form.
+     * The `namespace X;` declaration governing $beforePtr -- the nearest one at
+     * or before it -- without the leading backslash. Empty string for the
+     * global namespace or a file with no declaration before $beforePtr.
      */
-    private function collectNamespace(File $phpcsFile): string
+    private function collectNamespace(File $phpcsFile, int $beforePtr): string
     {
-        $tokens = $phpcsFile->getTokens();
-        $nsPtr  = $phpcsFile->findNext(T_NAMESPACE, 0);
+        $nsPtr = $phpcsFile->findPrevious(T_NAMESPACE, $beforePtr);
         if ($nsPtr === false) {
             return '';
         }
@@ -233,22 +233,33 @@ final class NoImplicitNowSniff implements Sniff
 
     /**
      * Maps each `use` import's local name (lowercased) to its absolute (no
-     * leading backslash) fully qualified name: `use App\Foo;` maps `foo` to
-     * `App\Foo`; `use App\Foo as Bar;` maps `bar` to `App\Foo`. Trait `use`
-     * statements inside a class/trait/interface/enum body, and `use
-     * function`/`use const` imports, are skipped -- they cannot import a
-     * class. Grouped imports (`use Ns\{A, B};`) are not supported and are
-     * skipped for that statement only.
+     * leading backslash) fully qualified name, scoped to the namespace block
+     * enclosing $beforePtr: `use App\Foo;` maps `foo` to `App\Foo`; `use
+     * App\Foo as Bar;` maps `bar` to `App\Foo`. A file with multiple
+     * non-bracketed `namespace X; ... namespace Y; ...` declarations has each
+     * block's imports scoped independently -- only `use` statements between
+     * the nearest preceding `namespace` declaration (if any) and the next one
+     * (or end of file) are collected. Trait `use` statements inside a
+     * class/trait/interface/enum body, and `use function`/`use const`
+     * imports, are skipped -- they cannot import a class. Grouped imports
+     * (`use Ns\{A, B};`) are not supported and are skipped for that statement
+     * only.
      *
      * @return array<string, string>
      */
-    private function collectUseAliases(File $phpcsFile): array
+    private function collectUseAliases(File $phpcsFile, int $beforePtr): array
     {
-        $tokens  = $phpcsFile->getTokens();
-        $aliases = [];
+        $tokens = $phpcsFile->getTokens();
 
-        $usePtr = 0;
-        while (($usePtr = $phpcsFile->findNext(T_USE, $usePtr + 1)) !== false) {
+        $blockStart = $phpcsFile->findPrevious(T_NAMESPACE, $beforePtr);
+        $blockStart = $blockStart === false ? 0 : $blockStart;
+
+        $blockEnd = $phpcsFile->findNext(T_NAMESPACE, $blockStart + 1);
+        $blockEnd = $blockEnd === false ? $phpcsFile->numTokens : $blockEnd;
+
+        $aliases = [];
+        $usePtr  = $blockStart;
+        while (($usePtr = $phpcsFile->findNext(T_USE, $usePtr + 1, $blockEnd)) !== false) {
             if ($this->isInsideClassLikeScope($tokens, $usePtr)) {
                 continue;
             }

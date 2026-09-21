@@ -12,6 +12,7 @@ use function ltrim;
 use function str_contains;
 use function str_ends_with;
 use function str_replace;
+use function strcasecmp;
 use function strrpos;
 use function substr;
 
@@ -189,11 +190,14 @@ final class NoNewServiceSniff implements Sniff
         }
 
         // DateTime, DateTimeImmutable, DateTimeInterface, DateInterval, DateTimeZone
-        if (in_array($bareClass, self::ALLOWED_DATE_CLASSES, true)) {
+        // -- compared case-insensitively: PHP class names are case-insensitive,
+        // so `new \DATETIMEIMMUTABLE()` and `new DateTimeImmutable()` are the
+        // same class.
+        if ($this->matchesAnyCaseInsensitively($bareClass, self::ALLOWED_DATE_CLASSES)) {
             return true;
         }
 
-        if (in_array($bareClass, self::ALLOWED_SPL_CLASSES, true)) {
+        if ($this->matchesAnyCaseInsensitively($bareClass, self::ALLOWED_SPL_CLASSES)) {
             return true;
         }
 
@@ -207,6 +211,18 @@ final class NoNewServiceSniff implements Sniff
         // Configurable additional suffixes
         foreach ($this->allowedSuffixes as $suffix) {
             if (str_ends_with($bareClass, $suffix)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /** @param list<string> $classList */
+    private function matchesAnyCaseInsensitively(string $bareClass, array $classList): bool
+    {
+        foreach ($classList as $allowed) {
+            if (strcasecmp($bareClass, $allowed) === 0) {
                 return true;
             }
         }
