@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace BearSunday\Sniffs\Resources;
 
-use BearSunday\Sniffs\Helper\ImportedClassCheck;
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;
 use PHP_CodeSniffer\Util\Tokens;
 
 use function in_array;
+use function ltrim;
 use function str_contains;
 use function str_replace;
 use function strtoupper;
@@ -33,15 +33,17 @@ use const T_VARIABLE;
  */
 final class HeaderConstantSniff implements Sniff
 {
-    use ImportedClassCheck;
-
     /**
-     * Class name used in the suggested replacement.
+     * Fully qualified class name used in the suggested replacement. The fixer
+     * always emits an absolute reference (leading `\`), so it never depends on
+     * a `use` import being present; the inherited
+     * SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly rule adds the
+     * `use` statement and shortens the reference on the next phpcbf pass.
      *
      * Configure in ruleset.xml:
-     *   <property name="headerClass" value="ResponseHeader"/>
+     *   <property name="headerClass" value="App\Http\ResponseHeader"/>
      */
-    public string $headerClass = 'ResponseHeader';
+    public string $headerClass = 'Koriym\HttpConstants\ResponseHeader';
 
     /**
      * Header names to keep as string literals.
@@ -130,32 +132,21 @@ final class HeaderConstantSniff implements Sniff
             return;
         }
 
-        $isImported = $this->isClassImported($phpcsFile, $this->headerClass);
-
-        if (! $isImported) {
-            $phpcsFile->addError(
-                'Header name "%s" must be written as %s::%s, not a string literal. '
-                . 'Add "use Koriym\HttpConstants\%s;" to auto-fix this with phpcbf.',
-                $keyPtr,
-                'StringHeaderName',
-                [$header, $this->headerClass, $constant, $this->headerClass],
-            );
-
-            return;
-        }
+        $configuredClass = $this->headerClass;
+        $fqcn            = '\\' . ltrim($configuredClass, '\\');
 
         $fix = $phpcsFile->addFixableError(
             'Header name "%s" must be written as %s::%s, not a string literal.',
             $keyPtr,
             'StringHeaderName',
-            [$header, $this->headerClass, $constant],
+            [$header, $configuredClass, $constant],
         );
 
         if (! $fix) {
             return;
         }
 
-        $phpcsFile->fixer->replaceToken($keyPtr, $this->headerClass . '::' . $constant);
+        $phpcsFile->fixer->replaceToken($keyPtr, $fqcn . '::' . $constant);
     }
 
     /**

@@ -9,7 +9,6 @@ use BearSunday\Tests\SniffTestCase;
 use function copy;
 use function dirname;
 use function file_exists;
-use function file_get_contents;
 use function is_dir;
 use function mkdir;
 use function sys_get_temp_dir;
@@ -17,8 +16,7 @@ use function unlink;
 
 final class HeaderConstantSniffTest extends SniffTestCase
 {
-    private string $tempFile         = '';
-    private string $noImportTempFile = '';
+    private string $tempFile = '';
 
     protected function setUp(): void
     {
@@ -29,22 +27,15 @@ final class HeaderConstantSniffTest extends SniffTestCase
 
         $this->tempFile = $dir . '/ArticleResourceHeaderTest.php';
         copy(dirname(__DIR__) . '/Resources/Fixtures/HeaderConstantUnitTest.inc', $this->tempFile);
-
-        $this->noImportTempFile = $dir . '/ArticleResourceHeaderNoImportTest.php';
-        copy(dirname(__DIR__) . '/Resources/Fixtures/HeaderConstantNoImportUnitTest.inc', $this->noImportTempFile);
     }
 
     protected function tearDown(): void
     {
-        if (file_exists($this->tempFile)) {
-            unlink($this->tempFile);
-        }
-
-        if (! file_exists($this->noImportTempFile)) {
+        if (! file_exists($this->tempFile)) {
             return;
         }
 
-        unlink($this->noImportTempFile);
+        unlink($this->tempFile);
     }
 
     public function testSniffDetectsStringHeaderName(): void
@@ -92,7 +83,7 @@ final class HeaderConstantSniffTest extends SniffTestCase
         $this->assertArrayNotHasKey(12, $result['errors'], 'allowedHeaders should suppress the Location error');
     }
 
-    public function testSniffMarksViolationFixableWhenClassIsImported(): void
+    public function testSniffMarksViolationFixable(): void
     {
         $result = $this->processSniff(
             $this->sniffPath('Resources', 'HeaderConstantSniff'),
@@ -101,23 +92,10 @@ final class HeaderConstantSniffTest extends SniffTestCase
 
         $error = $this->firstErrorOnLine($result['errors'], 12);
         $this->assertNotNull($error, 'Expected an error on line 12');
-        $this->assertTrue($error['fixable'], 'Should be fixable when ResponseHeader is already imported');
+        $this->assertTrue($error['fixable'], 'Should always be fixable — the fixer emits an absolute reference');
     }
 
-    public function testSniffLeavesViolationNotFixableWhenClassIsNotImported(): void
-    {
-        $result = $this->processSniff(
-            $this->sniffPath('Resources', 'HeaderConstantSniff'),
-            $this->noImportTempFile,
-        );
-
-        // $this->headers['Location'] on line 10, no `use Koriym\HttpConstants\ResponseHeader;` in this file
-        $error = $this->firstErrorOnLine($result['errors'], 10);
-        $this->assertNotNull($error, 'Expected an error on line 10');
-        $this->assertFalse($error['fixable'], 'Must not offer an auto-fix that references an unimported class');
-    }
-
-    public function testSniffFixesTheLiteralWhenClassIsImported(): void
+    public function testSniffFixesTheLiteral(): void
     {
         $fixed = $this->fixFile(
             $this->sniffPath('Resources', 'HeaderConstantSniff'),
@@ -125,26 +103,10 @@ final class HeaderConstantSniffTest extends SniffTestCase
         );
 
         $this->assertStringContainsString(
-            "\$this->headers[ResponseHeader::LOCATION] = '/articles/1';",
+            "\$this->headers[\Koriym\HttpConstants\ResponseHeader::LOCATION] = '/articles/1';",
             $fixed,
-            'Fixer must rewrite the literal in place using the configured class',
+            'Fixer must rewrite the literal in place using an absolute class reference',
         );
         $this->assertStringNotContainsString("\$this->headers['Location'] = '/articles/1';", $fixed);
-    }
-
-    public function testSniffLeavesFileUnchangedWhenClassIsNotImported(): void
-    {
-        $original = file_get_contents($this->noImportTempFile);
-
-        $fixed = $this->fixFile(
-            $this->sniffPath('Resources', 'HeaderConstantSniff'),
-            $this->noImportTempFile,
-        );
-
-        $this->assertSame(
-            $original,
-            $fixed,
-            'Fixer must not touch a file where ResponseHeader is not imported',
-        );
     }
 }

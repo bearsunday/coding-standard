@@ -115,11 +115,12 @@ of a bare HTTP status number. Codes without a constant in that class (this
 package's `StatusCode` currently has no `422` or `429`, for example) are left
 alone — flagging them would tell you to write an undefined constant.
 
-**Auto-fixable** with `phpcbf`, but only when `StatusCode` is already
-`use`-imported in that file — the fixer rewrites the literal in place and
-never inserts a `use` statement, so it will not produce a reference to a
-class the file cannot resolve. When the import is missing, the violation is
-still reported (not auto-fixed); add the `use` statement and re-run `phpcbf`.
+**Auto-fixable** with `phpcbf`. The fixer always rewrites the literal to an
+absolute (`\`-prefixed) class reference, so it never depends on a `use`
+import being present in that file. If the resulting reference isn't already
+shortened by a `use` import, the inherited
+`SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly` rule adds one and
+shortens the reference on the next `phpcbf` pass.
 
 ```php
 // Bad
@@ -132,7 +133,8 @@ $this->code = StatusCode::NOT_FOUND;
 #### Configuration
 
 Override the suggested class name via `statusCodeClass` in your `phpcs.xml`
-if your project aliases or re-exports the constants under a different name.
+if your project re-exports the constants under a different fully qualified
+class name.
 
 ### BearSunday.Resources.HeaderConstant
 
@@ -143,9 +145,10 @@ contains `/Resource/`.
 instead of a string literal header name. Header names without a constant in
 that class (application-specific headers like `X-Request-Id`) are left alone.
 
-**Auto-fixable** with `phpcbf` under the same condition as
-`StatusCodeConstant`: only when `ResponseHeader` is already `use`-imported in
-that file. No `use` statement is ever inserted by the fixer.
+**Auto-fixable** with `phpcbf`, same as `StatusCodeConstant`: the fixer always
+emits an absolute (`\`-prefixed) class reference, so it never depends on a
+`use` import; the inherited `SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly`
+rule adds the `use` import and shortens the reference on the next `phpcbf` pass.
 
 ```php
 // Bad
@@ -281,7 +284,7 @@ vendor/bin/phpcs            # self-check (uses phpcs.xml)
 
 ## Reference
 
-- [BEAR.Package docs/coding-conventions.md](https://github.com/bearsunday/BEAR.Package/blob/1.x/docs/coding-conventions.md)
+- [BEAR.Sunday コーディングガイド](https://bearsunday.github.io/manuals/1.0/ja/coding-guide.html)
 - [MyVendor.Cms](https://github.com/bearsunday/MyVendor.Cms) — reference implementation
 - [Doctrine Coding Standard](https://github.com/doctrine/coding-standard)
 - [Slevomat Coding Standard](https://github.com/slevomat/coding-standard)

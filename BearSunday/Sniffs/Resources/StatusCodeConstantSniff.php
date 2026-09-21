@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace BearSunday\Sniffs\Resources;
 
-use BearSunday\Sniffs\Helper\ImportedClassCheck;
 use PHP_CodeSniffer\Files\File;
 use PHP_CodeSniffer\Sniffs\Sniff;
 use PHP_CodeSniffer\Util\Tokens;
 
 use function array_key_exists;
+use function ltrim;
 use function str_contains;
 
 use const T_EQUAL;
@@ -30,15 +30,17 @@ use const T_VARIABLE;
  */
 final class StatusCodeConstantSniff implements Sniff
 {
-    use ImportedClassCheck;
-
     /**
-     * Class name used in the suggested replacement.
+     * Fully qualified class name used in the suggested replacement. The fixer
+     * always emits an absolute reference (leading `\`), so it never depends on
+     * a `use` import being present; the inherited
+     * SlevomatCodingStandard.Namespaces.ReferenceUsedNamesOnly rule adds the
+     * `use` statement and shortens the reference on the next phpcbf pass.
      *
      * Configure in ruleset.xml:
-     *   <property name="statusCodeClass" value="StatusCode"/>
+     *   <property name="statusCodeClass" value="App\Http\StatusCode"/>
      */
-    public string $statusCodeClass = 'StatusCode';
+    public string $statusCodeClass = 'Koriym\HttpConstants\StatusCode';
 
     private const CONSTANTS = [
         100 => 'CONTINUE_',
@@ -113,32 +115,21 @@ final class StatusCodeConstantSniff implements Sniff
             return;
         }
 
-        $isImported = $this->isClassImported($phpcsFile, $this->statusCodeClass);
-
-        if (! $isImported) {
-            $phpcsFile->addError(
-                'HTTP status code %d must be written as %s::%s, not a numeric literal. '
-                . 'Add "use Koriym\HttpConstants\%s;" to auto-fix this with phpcbf.',
-                $literalPtr,
-                'MagicStatusCode',
-                [$code, $this->statusCodeClass, self::CONSTANTS[$code], $this->statusCodeClass],
-            );
-
-            return;
-        }
+        $configuredClass = $this->statusCodeClass;
+        $fqcn            = '\\' . ltrim($configuredClass, '\\');
 
         $fix = $phpcsFile->addFixableError(
             'HTTP status code %d must be written as %s::%s, not a numeric literal.',
             $literalPtr,
             'MagicStatusCode',
-            [$code, $this->statusCodeClass, self::CONSTANTS[$code]],
+            [$code, $configuredClass, self::CONSTANTS[$code]],
         );
 
         if (! $fix) {
             return;
         }
 
-        $phpcsFile->fixer->replaceToken($literalPtr, $this->statusCodeClass . '::' . self::CONSTANTS[$code]);
+        $phpcsFile->fixer->replaceToken($literalPtr, $fqcn . '::' . self::CONSTANTS[$code]);
     }
 
     /**
