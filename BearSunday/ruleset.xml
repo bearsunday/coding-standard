@@ -34,6 +34,7 @@
     <rule ref="BearSunday.Resources.ReturnStatic"/>
     <rule ref="BearSunday.Resources.NoSuperglobals"/>
     <rule ref="BearSunday.Resources.NoAbstractResource"/>
+    <rule ref="BearSunday.Resources.NoFinalResource"/>
     <rule ref="BearSunday.Resources.StatusCodeConstant"/>
     <rule ref="BearSunday.Resources.HeaderConstant"/>
     <rule ref="BearSunday.DbQuery.RedundantType"/>
