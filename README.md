@@ -59,10 +59,11 @@ vendor/bin/phpcs --standard=BearSunday src/
 
 ### Scoping path-sensitive sniffs
 
-Six sniffs gate on a loose substring match against the file path —
-`ReturnStatic`, `NoSuperglobals`, `NoAbstractResource`, `HeaderConstant`, and
-`StatusCodeConstant` trigger on any path containing `/Resource/`; `NoNewService`
-triggers on `/Resource/`, `/Service/`, or `/Domain/`. This also matches
+Seven sniffs gate on a loose substring match against the file path —
+`ReturnStatic`, `NoSuperglobals`, `NoAbstractResource`, `NoFinalResource`,
+`HeaderConstant`, and `StatusCodeConstant` trigger on any path containing
+`/Resource/`; `NoNewService` triggers on `/Resource/`, `/Service/`, or
+`/Domain/`. This also matches
 test-mirror directories such as `tests/Resource/ArticleTest.php`, which is
 rarely what you want.
 
@@ -207,7 +208,24 @@ declarations.
 abstract class BasePageResource { ... }
 
 // Good — inside Resource/
-final class ArticlePageResource { ... }
+class ArticlePageResource { ... }
+```
+
+### BearSunday.Resources.NoFinalResource
+
+**Trigger:** any `final class` declaration inside a file whose path contains
+`/Resource/`.
+
+**Rule:** Resource classes must not be `final`. Ray.Aop applies interceptors by
+generating a subclass, and Ray.Di silently skips a `final` class, so attributes
+such as `#[SameOrigin]` and `#[CsrfToken]` would run unprotected.
+
+```php
+// Bad — inside Resource/
+final class ArticleResource { ... }
+
+// Good — inside Resource/
+class ArticleResource { ... }
 ```
 
 ### BearSunday.Resources.StatusCodeConstant
