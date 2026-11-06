@@ -189,9 +189,7 @@ final class NoNewServiceSniff implements Sniff
             return true;
         }
 
-        // DateTime, DateTimeImmutable, DateTimeInterface, DateInterval, DateTimeZone --
-        // matched case-insensitively: PHP class names are case-insensitive, so
-        // `new \DATETIMEIMMUTABLE()` is the same class as `DateTimeImmutable`.
+        // PHP class names are case-insensitive, so built-in names match in any casing.
         if ($this->matchesAnyCaseInsensitively($bareClass, self::ALLOWED_DATE_CLASSES)) {
             return true;
         }
