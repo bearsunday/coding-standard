@@ -77,6 +77,18 @@ final class NoNewServiceSniffTest extends SniffTestCase
         $this->assertArrayNotHasKey(26, $errors, 'Should not error on line 26 (DateTimeImmutable)');
     }
 
+    public function testSniffAllowsBuiltinClassesCaseInsensitively(): void
+    {
+        $result = $this->processSniff(
+            $this->sniffPath('Di', 'NoNewServiceSniff'),
+            $this->tempFile,
+        );
+        $errors = $result['errors'];
+
+        $this->assertArrayNotHasKey(89, $errors, 'Should not error on line 89 (\DATETIMEIMMUTABLE)');
+        $this->assertArrayNotHasKey(90, $errors, 'Should not error on line 90 (\splobjectstorage)');
+    }
+
     public function testSniffAllowsThrowNew(): void
     {
         $result = $this->processSniff(

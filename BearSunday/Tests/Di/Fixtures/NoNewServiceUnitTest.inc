@@ -82,4 +82,11 @@ class ArticleService
     {
         return new namespace\RelativeService();
     }
+
+    // OK: built-in class names are case-insensitive
+    public function caseInsensitiveBuiltins(): void
+    {
+        $date    = new \DATETIMEIMMUTABLE();
+        $storage = new \splobjectstorage();
+    }
 }
