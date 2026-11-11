@@ -14,6 +14,7 @@ use function str_ends_with;
 use function str_replace;
 use function strcasecmp;
 use function strrpos;
+use function strtolower;
 use function substr;
 
 use const T_CLOSE_CURLY_BRACKET;
@@ -44,6 +45,7 @@ use const T_WHITESPACE;
  *   - Date/time classes: DateTime, DateTimeImmutable, DateTimeInterface, DateInterval, DateTimeZone
  *   - SPL classes listed in ALLOWED_SPL_CLASSES
  *   - throw new ... expressions (domain exceptions must be thrown, not injected)
+ *   - new static / new self: a class constructing itself has nothing to inject
  *   - Configurable via $allowedClasses and $allowedSuffixes properties
  *
  * Trigger paths: <code>/Resource/</code>, <code>/Service/</code>, <code>/Domain/</code>
@@ -163,6 +165,22 @@ final class NoNewServiceSniff implements Sniff
         // Get the class name being instantiated
         $className = $this->getClassName($phpcsFile, $stackPtr);
         if ($className === null) {
+            return;
+        }
+
+        $keyword = strtolower($className);
+        if ($keyword === 'static' || $keyword === 'self') {
+            return;
+        }
+
+        if ($keyword === 'parent') {
+            $phpcsFile->addError(
+                '"new parent" instantiates the parent class directly in a service-layer class. '
+                . 'Use Ray.Di dependency injection instead.',
+                $stackPtr,
+                'NewParentFound',
+            );
+
             return;
         }
 

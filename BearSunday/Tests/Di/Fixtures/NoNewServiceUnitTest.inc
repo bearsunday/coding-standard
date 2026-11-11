@@ -89,4 +89,26 @@ class ArticleService
         $date    = new \DATETIMEIMMUTABLE();
         $storage = new \splobjectstorage();
     }
+
+    // OK: a class constructing itself has nothing to inject
+    public static function of(): static
+    {
+        return new static();
+    }
+
+    public static function make(): self
+    {
+        return new self();
+    }
+
+    public static function makeInAnyCase(): self
+    {
+        return new SELF();
+    }
+
+    // ERROR: new parent instantiates the parent class
+    public function parentInstance(): object
+    {
+        return new parent();
+    }
 }
