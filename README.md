@@ -126,6 +126,10 @@ conventions:
   and `$uri` without a type, and PHP rejects a type on a property redeclared
   from an untyped parent.
 
+`SlevomatCodingStandard.Commenting.DocCommentSpacing` groups annotations the
+BEAR.Sunday way: `@param` with `@psalm-param` and `@phpstan-param`, `@return` with
+`@psalm-return` and `@phpstan-return`, then `@Inject, @Named`, then `@throws`.
+
 ### Generic.PHP.ForbiddenFunctions
 
 Forbids: `var_dump`, `print_r`, `dd`, `error_log`, `dump`.
