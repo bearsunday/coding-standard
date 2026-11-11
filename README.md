@@ -110,10 +110,21 @@ StructuredData(...)` without disabling `NoNewService` for anything else:
 
 ### Doctrine Coding Standard (base)
 
-All Doctrine rules are inherited. The single excluded rule is
-`SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing`, which allows
-inline parameter attributes like `#[Input] Dto $input` — the BEAR.Sunday
-preferred form for DTO injection.
+All Doctrine rules are inherited, except those that conflict with BEAR.Sunday
+conventions:
+
+- `SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing`, which allows
+  inline parameter attributes like `#[Input] Dto $input` — the BEAR.Sunday
+  preferred form for DTO injection.
+- `SuperfluousInterfaceNaming`, `SuperfluousExceptionNaming` and
+  `SuperfluousAbstractClassNaming`: BEAR.Sunday names interfaces `*Interface`,
+  exceptions `*Exception` and abstract bases `Abstract*`.
+- `Generic.Formatting.MultipleStatementAlignment.NotSame` and
+  `Squiz.Strings.DoubleQuoteUsage.ContainsVar`.
+- `SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint` under
+  `/Resource/`: `ResourceObject` declares `$body`, `$code`, `$headers`, `$view`
+  and `$uri` without a type, and PHP rejects a type on a property redeclared
+  from an untyped parent.
 
 ### Generic.PHP.ForbiddenFunctions
 

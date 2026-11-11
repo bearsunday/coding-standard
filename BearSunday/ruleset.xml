@@ -15,6 +15,18 @@
             property attributes are still written on their own line by convention.
         -->
         <exclude name="SlevomatCodingStandard.Attributes.AttributeAndTargetSpacing"/>
+        <!-- BEAR.Sunday names interfaces *Interface, exceptions *Exception and abstract bases Abstract* -->
+        <exclude name="SlevomatCodingStandard.Classes.SuperfluousInterfaceNaming"/>
+        <exclude name="SlevomatCodingStandard.Classes.SuperfluousExceptionNaming"/>
+        <exclude name="SlevomatCodingStandard.Classes.SuperfluousAbstractClassNaming"/>
+        <!-- BEAR.Sunday code does not align assignments, and interpolates variables in strings -->
+        <exclude name="Generic.Formatting.MultipleStatementAlignment.NotSame"/>
+        <exclude name="Squiz.Strings.DoubleQuoteUsage.ContainsVar"/>
+    </rule>
+
+    <!-- ResourceObject declares $body, $code, $headers, $view and $uri without a type, so a resource cannot add one -->
+    <rule ref="SlevomatCodingStandard.TypeHints.PropertyTypeHint.MissingNativeTypeHint">
+        <exclude-pattern>*/Resource/*</exclude-pattern>
     </rule>
 
     <!-- Forbidden debug/output functions -->
