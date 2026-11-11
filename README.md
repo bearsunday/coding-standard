@@ -331,7 +331,7 @@ public function __construct(
 
 #### Configuration
 
-The sniff reports any class it does not know as a value. When it reports a value
+The sniff reports every class it does not recognize. When it reports a value
 object, add the class to `allowedClasses`: the list stays in the project's
 `phpcs.xml`, where a reviewer sees every class the project treats as a value.
 Extend the allow-list via `allowedClasses` or `allowedSuffixes` in your `phpcs.xml`:
