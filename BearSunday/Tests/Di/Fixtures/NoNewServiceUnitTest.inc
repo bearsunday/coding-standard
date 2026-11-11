@@ -111,4 +111,10 @@ class ArticleService
     {
         return new parent();
     }
+
+    // OK: ArrayIterator is an SPL class
+    public function iterator(): \ArrayIterator
+    {
+        return new \arrayiterator([]);
+    }
 }

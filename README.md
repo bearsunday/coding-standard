@@ -311,8 +311,9 @@ injection, not direct `new`.
 **Allow-list (no error):**
 - Class names ending in `Input`, `Dto`, `Entity`, `ValueObject`, `Exception`
 - `DateTime`, `DateTimeImmutable`, `DateTimeInterface`, `DateInterval`, `DateTimeZone`
-- SPL classes: `SplDoublyLinkedList`, `SplFileInfo`, `SplFileObject`, `SplFixedArray`, `SplHeap`, `SplMaxHeap`, `SplMinHeap`, `SplObjectStorage`, `SplObserver`, `SplPriorityQueue`, `SplQueue`, `SplStack`, `SplSubject`, `SplTempFileObject`
+- SPL classes: `ArrayIterator`, `SplDoublyLinkedList`, `SplFileInfo`, `SplFileObject`, `SplFixedArray`, `SplHeap`, `SplMaxHeap`, `SplMinHeap`, `SplObjectStorage`, `SplObserver`, `SplPriorityQueue`, `SplQueue`, `SplStack`, `SplSubject`, `SplTempFileObject`
 - `throw new ...` expressions
+- `new static` and `new self`: a class constructing itself has nothing to inject (`new parent` is reported as `NewParentFound`)
 - Classes listed in `allowedClasses`
 
 ```php

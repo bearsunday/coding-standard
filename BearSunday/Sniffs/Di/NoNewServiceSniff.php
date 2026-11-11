@@ -99,6 +99,7 @@ final class NoNewServiceSniff implements Sniff
     ];
 
     private const ALLOWED_SPL_CLASSES = [
+        'ArrayIterator',
         'SplDoublyLinkedList',
         'SplFileInfo',
         'SplFileObject',

@@ -88,6 +88,7 @@ final class NoNewServiceSniffTest extends SniffTestCase
 
         $this->assertArrayNotHasKey(89, $errors, 'Should not error on line 89 (\DATETIMEIMMUTABLE)');
         $this->assertArrayNotHasKey(90, $errors, 'Should not error on line 90 (\splobjectstorage)');
+        $this->assertArrayNotHasKey(118, $errors, 'Should not error on line 118 (\arrayiterator)');
     }
 
     public function testSniffAllowsThrowNew(): void
