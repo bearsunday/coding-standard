@@ -35,7 +35,6 @@
             <property name="annotationsGroups" type="array">
                 <element value="@param, @psalm-param, @phpstan-param"/>
                 <element value="@return, @psalm-return, @phpstan-return"/>
-                <element value="@Inject, @Named"/>
                 <element value="@throws"/>
             </property>
         </properties>
