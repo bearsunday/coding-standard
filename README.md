@@ -44,6 +44,9 @@ Seven sniffs gate on a loose substring match against the file path —
 `/Domain/`. Every `BearSunday` sniff excludes `*/tests/*`, so test-mirror
 directories such as `tests/Resource/ArticleTest.php` are not checked by them.
 Tests are still checked by the Doctrine rules and the forbidden debug functions.
+The pattern matches `/tests/` anywhere in the absolute path, so a project that
+itself sits under a directory named `tests` (for example `~/tests/myapp`) loses
+these sniffs for `src` too.
 
 To scope a sniff to your actual source layout, add a narrower sibling
 `<rule ref>` with an `include-pattern` — PHPCS applies it cumulatively even
@@ -286,7 +289,7 @@ implies the fetch mode:
 | `?ClassName`, `ClassName\|null` | `getRow()` | `'row'` |
 | `array` | `getRowList()` | `'row_list'` |
 
-Severity: ERROR (auto-fixable stub — full fix in v0.2).
+Severity: ERROR.
 
 ```php
 // Bad
