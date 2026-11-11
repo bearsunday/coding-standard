@@ -307,8 +307,10 @@ public function item(int $id): ?Article;
 `/Resource/`, `/Service/`, or `/Domain/`.
 
 **Excluded:** files under `/Module/`, `/Provider/` or `/Factory/`, and classes that
-implement `ProviderInterface` wherever they are (composition roots). The interface
-is matched by its short name, since the sniff does not resolve `use` imports.
+list `ProviderInterface` in their own `implements` clause wherever they are
+(composition roots); a provider that inherits the interface from a base class is
+still checked. The interface is matched by its short name, since the sniff does
+not resolve `use` imports.
 
 **Rule:** service-layer classes must receive dependencies via Ray.Di constructor
 injection, not direct `new`.
