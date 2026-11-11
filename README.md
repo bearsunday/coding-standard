@@ -286,7 +286,7 @@ implies the fetch mode:
 | `?ClassName`, `ClassName\|null` | `getRow()` | `'row'` |
 | `array` | `getRowList()` | `'row_list'` |
 
-Severity: WARNING (auto-fixable stub — full fix in v0.2).
+Severity: ERROR (auto-fixable stub — full fix in v0.2).
 
 ```php
 // Bad

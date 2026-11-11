@@ -130,7 +130,7 @@ final class RedundantTypeSniff implements Sniff
             return;
         }
 
-        $phpcsFile->addWarning(
+        $phpcsFile->addError(
             'The type: \'%s\' argument in #[DbQuery] is redundant; '
             . 'the return type "%s" already implies this fetch mode.',
             $stackPtr,
