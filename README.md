@@ -6,35 +6,13 @@ Extends [Doctrine Coding Standard](https://github.com/doctrine/coding-standard) 
 
 ## Installation
 
-Not yet published on Packagist. The package is currently registered under
-`bear/conding-standard` in `composer.json` — a typo of the intended
-`bearsunday/coding-standard` that hasn't been renamed yet. Use the name as
-it actually is today; update this snippet if/when the package is renamed.
-
-Add it as a VCS repository and require the `1.x` branch:
-
-```json
-{
-    "repositories": {
-        "bear/conding-standard": {
-            "type": "vcs",
-            "url": "https://github.com/bearsunday/coding-standard.git"
-        }
-    },
-    "require-dev": {
-        "bear/conding-standard": "1.x-dev"
-    }
-}
-```
-
 ```bash
-composer update bear/conding-standard --with-all-dependencies
+composer require --dev bear/coding-standard --with-all-dependencies
 ```
 
-The `--with-all-dependencies` flag is only needed the first time, to let
-Composer raise `squizlabs/php_codesniffer`, `doctrine/coding-standard`, and
-`slevomat/coding-standard` to the versions this package requires if your
-project pins older ones.
+The `--with-all-dependencies` flag lets Composer raise `squizlabs/php_codesniffer`,
+`doctrine/coding-standard`, and `slevomat/coding-standard` to the versions this
+package requires if your project pins older ones.
 
 The `dealerdirect/phpcodesniffer-composer-installer` plugin auto-registers the standard. After install, `BearSunday` is available as a PHPCS standard name.
 
