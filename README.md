@@ -41,9 +41,9 @@ Seven sniffs gate on a loose substring match against the file path —
 `ReturnStatic`, `NoSuperglobals`, `NoAbstractResource`, `NoFinalResource`,
 `HeaderConstant`, and `StatusCodeConstant` trigger on any path containing
 `/Resource/`; `NoNewService` triggers on `/Resource/`, `/Service/`, or
-`/Domain/`. The standard excludes `*/tests/*` from `ReturnStatic`,
-`NoSuperglobals`, `NoFinalResource` and `NoNewService`, so test-mirror
+`/Domain/`. Every `BearSunday` sniff excludes `*/tests/*`, so test-mirror
 directories such as `tests/Resource/ArticleTest.php` are not checked by them.
+Tests are still checked by the Doctrine rules and the forbidden debug functions.
 
 To scope a sniff to your actual source layout, add a narrower sibling
 `<rule ref>` with an `include-pattern` — PHPCS applies it cumulatively even
