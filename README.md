@@ -128,7 +128,7 @@ conventions:
 
 `SlevomatCodingStandard.Commenting.DocCommentSpacing` groups annotations the
 BEAR.Sunday way: `@param` with `@psalm-param` and `@phpstan-param`, `@return` with
-`@psalm-return` and `@phpstan-return`, then `@Inject, @Named`, then `@throws`.
+`@psalm-return` and `@phpstan-return`, then `@throws`.
 
 ### Generic.PHP.ForbiddenFunctions
 
