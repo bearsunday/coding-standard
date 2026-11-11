@@ -11,6 +11,7 @@ use function dirname;
 use function file_exists;
 use function is_dir;
 use function mkdir;
+use function reset;
 use function sys_get_temp_dir;
 use function unlink;
 
@@ -87,6 +88,7 @@ final class NoNewServiceSniffTest extends SniffTestCase
 
         $this->assertArrayNotHasKey(89, $errors, 'Should not error on line 89 (\DATETIMEIMMUTABLE)');
         $this->assertArrayNotHasKey(90, $errors, 'Should not error on line 90 (\splobjectstorage)');
+        $this->assertArrayNotHasKey(118, $errors, 'Should not error on line 118 (\arrayiterator)');
     }
 
     public function testSniffAllowsThrowNew(): void
@@ -123,5 +125,33 @@ final class NoNewServiceSniffTest extends SniffTestCase
         $this->assertArrayNotHasKey(71, $errors, 'Should not error on line 71 (configured ExternalClient)');
         // Line 32: new OtherService() → still forbidden
         $this->assertArrayHasKey(32, $errors, 'Expected error on line 32 (new OtherService)');
+    }
+
+    public function testSniffAllowsTheClassToConstructItself(): void
+    {
+        $result = $this->processSniff(
+            $this->sniffPath('Di', 'NoNewServiceSniff'),
+            $this->tempFile,
+        );
+        $errors = $result['errors'];
+
+        $this->assertArrayNotHasKey(96, $errors, 'Should not error on line 96 (new static)');
+        $this->assertArrayNotHasKey(101, $errors, 'Should not error on line 101 (new self)');
+        $this->assertArrayNotHasKey(106, $errors, 'Should not error on line 106 (new SELF)');
+        $this->assertArrayHasKey(112, $errors, 'Expected error on line 112 (new parent)');
+        $messages = reset($errors[112]);
+        $this->assertSame('BearSunday.Di.NoNewService.NewParentFound', $messages[0]['source']);
+    }
+
+    public function testSniffAllowsNewInsideAProvider(): void
+    {
+        $result = $this->processSniff(
+            $this->sniffPath('Di', 'NoNewServiceSniff'),
+            $this->tempFile,
+        );
+        $errors = $result['errors'];
+
+        $this->assertArrayNotHasKey(127, $errors, 'Should not error on line 127 (new inside a provider)');
+        $this->assertArrayHasKey(136, $errors, 'Expected error on line 136 (another interface exempts nothing)');
     }
 }

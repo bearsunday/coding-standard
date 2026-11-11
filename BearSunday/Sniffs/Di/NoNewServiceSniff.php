@@ -14,8 +14,10 @@ use function str_ends_with;
 use function str_replace;
 use function strcasecmp;
 use function strrpos;
+use function strtolower;
 use function substr;
 
+use const T_CLASS;
 use const T_CLOSE_CURLY_BRACKET;
 use const T_NAME_FULLY_QUALIFIED;
 use const T_NAME_QUALIFIED;
@@ -44,6 +46,8 @@ use const T_WHITESPACE;
  *   - Date/time classes: DateTime, DateTimeImmutable, DateTimeInterface, DateInterval, DateTimeZone
  *   - SPL classes listed in ALLOWED_SPL_CLASSES
  *   - throw new ... expressions (domain exceptions must be thrown, not injected)
+ *   - new static / new self: a class constructing itself has nothing to inject
+ *   - new inside a class implementing ProviderInterface: a Ray.Di provider builds what it provides
  *   - Configurable via $allowedClasses and $allowedSuffixes properties
  *
  * Trigger paths: <code>/Resource/</code>, <code>/Service/</code>, <code>/Domain/</code>
@@ -97,6 +101,7 @@ final class NoNewServiceSniff implements Sniff
     ];
 
     private const ALLOWED_SPL_CLASSES = [
+        'ArrayIterator',
         'SplDoublyLinkedList',
         'SplFileInfo',
         'SplFileObject',
@@ -155,6 +160,10 @@ final class NoNewServiceSniff implements Sniff
             return;
         }
 
+        if ($this->isInProvider($phpcsFile, $stackPtr)) {
+            return;
+        }
+
         // Check if this is `throw new ...`
         if ($this->isThrowContext($phpcsFile, $stackPtr)) {
             return;
@@ -163,6 +172,22 @@ final class NoNewServiceSniff implements Sniff
         // Get the class name being instantiated
         $className = $this->getClassName($phpcsFile, $stackPtr);
         if ($className === null) {
+            return;
+        }
+
+        $keyword = strtolower($className);
+        if ($keyword === 'static' || $keyword === 'self') {
+            return;
+        }
+
+        if ($keyword === 'parent') {
+            $phpcsFile->addError(
+                '"new parent" instantiates the parent class directly in a service-layer class. '
+                . 'Use Ray.Di dependency injection instead.',
+                $stackPtr,
+                'NewParentFound',
+            );
+
             return;
         }
 
@@ -175,12 +200,35 @@ final class NoNewServiceSniff implements Sniff
 
         $phpcsFile->addError(
             'Direct instantiation of "%s" is not allowed in service-layer classes. '
-            . 'Use Ray.Di dependency injection instead. '
-            . 'Value objects (Input, Dto, Entity, ValueObject, Exception) and date classes are exempt.',
+            . 'If it is a service, inject it through the constructor with Ray.Di. '
+            . 'If it is a value object, add it to the allowedClasses property of '
+            . 'BearSunday.Di.NoNewService in phpcs.xml.',
             $stackPtr,
             'NewServiceFound',
             [$className],
         );
+    }
+
+    /** Matched by short name: the sniff does not resolve `use` imports. */
+    private function isInProvider(File $phpcsFile, int $stackPtr): bool
+    {
+        $classPtr = $phpcsFile->getCondition($stackPtr, T_CLASS);
+        if ($classPtr === false) {
+            return false;
+        }
+
+        $interfaces = $phpcsFile->findImplementedInterfaceNames($classPtr);
+        if ($interfaces === false) {
+            return false;
+        }
+
+        foreach ($interfaces as $interface) {
+            if (strcasecmp($this->shortClassName(ltrim($interface, '\\')), 'ProviderInterface') === 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function isAllowed(string $bareClass): bool

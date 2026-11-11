@@ -6,35 +6,13 @@ Extends [Doctrine Coding Standard](https://github.com/doctrine/coding-standard) 
 
 ## Installation
 
-Not yet published on Packagist. The package is currently registered under
-`bear/conding-standard` in `composer.json` — a typo of the intended
-`bearsunday/coding-standard` that hasn't been renamed yet. Use the name as
-it actually is today; update this snippet if/when the package is renamed.
-
-Add it as a VCS repository and require the `1.x` branch:
-
-```json
-{
-    "repositories": {
-        "bear/conding-standard": {
-            "type": "vcs",
-            "url": "https://github.com/bearsunday/coding-standard.git"
-        }
-    },
-    "require-dev": {
-        "bear/conding-standard": "1.x-dev"
-    }
-}
-```
-
 ```bash
-composer update bear/conding-standard --with-all-dependencies
+composer require --dev bear/coding-standard --with-all-dependencies
 ```
 
-The `--with-all-dependencies` flag is only needed the first time, to let
-Composer raise `squizlabs/php_codesniffer`, `doctrine/coding-standard`, and
-`slevomat/coding-standard` to the versions this package requires if your
-project pins older ones.
+The `--with-all-dependencies` flag lets Composer raise `squizlabs/php_codesniffer`,
+`doctrine/coding-standard`, and `slevomat/coding-standard` to the versions this
+package requires if your project pins older ones.
 
 The `dealerdirect/phpcodesniffer-composer-installer` plugin auto-registers the standard. After install, `BearSunday` is available as a PHPCS standard name.
 
@@ -63,9 +41,12 @@ Seven sniffs gate on a loose substring match against the file path —
 `ReturnStatic`, `NoSuperglobals`, `NoAbstractResource`, `NoFinalResource`,
 `HeaderConstant`, and `StatusCodeConstant` trigger on any path containing
 `/Resource/`; `NoNewService` triggers on `/Resource/`, `/Service/`, or
-`/Domain/`. This also matches
-test-mirror directories such as `tests/Resource/ArticleTest.php`, which is
-rarely what you want.
+`/Domain/`. Every `BearSunday` sniff excludes `*/tests/*`, so test-mirror
+directories such as `tests/Resource/ArticleTest.php` are not checked by them.
+Tests are still checked by the Doctrine rules and the forbidden debug functions.
+The pattern matches `/tests/` anywhere in the absolute path, so a project that
+itself sits under a directory named `tests` (for example `~/tests/myapp`) loses
+these sniffs for `src` too.
 
 To scope a sniff to your actual source layout, add a narrower sibling
 `<rule ref>` with an `include-pattern` — PHPCS applies it cumulatively even
@@ -308,7 +289,7 @@ implies the fetch mode:
 | `?ClassName`, `ClassName\|null` | `getRow()` | `'row'` |
 | `array` | `getRowList()` | `'row_list'` |
 
-Severity: WARNING (auto-fixable stub — full fix in v0.2).
+Severity: ERROR.
 
 ```php
 // Bad
@@ -325,7 +306,11 @@ public function item(int $id): ?Article;
 **Trigger:** `new ClassName` expressions inside files whose path contains
 `/Resource/`, `/Service/`, or `/Domain/`.
 
-**Excluded paths:** `/Module/`, `/Provider/`, `/Factory/` (composition roots).
+**Excluded:** files under `/Module/`, `/Provider/` or `/Factory/`, and classes that
+list `ProviderInterface` in their own `implements` clause wherever they are
+(composition roots); a provider that inherits the interface from a base class is
+still checked. The interface is matched by its short name, since the sniff does
+not resolve `use` imports.
 
 **Rule:** service-layer classes must receive dependencies via Ray.Di constructor
 injection, not direct `new`.
@@ -333,8 +318,9 @@ injection, not direct `new`.
 **Allow-list (no error):**
 - Class names ending in `Input`, `Dto`, `Entity`, `ValueObject`, `Exception`
 - `DateTime`, `DateTimeImmutable`, `DateTimeInterface`, `DateInterval`, `DateTimeZone`
-- SPL classes: `SplDoublyLinkedList`, `SplFileInfo`, `SplFileObject`, `SplFixedArray`, `SplHeap`, `SplMaxHeap`, `SplMinHeap`, `SplObjectStorage`, `SplObserver`, `SplPriorityQueue`, `SplQueue`, `SplStack`, `SplSubject`, `SplTempFileObject`
+- SPL classes: `ArrayIterator`, `SplDoublyLinkedList`, `SplFileInfo`, `SplFileObject`, `SplFixedArray`, `SplHeap`, `SplMaxHeap`, `SplMinHeap`, `SplObjectStorage`, `SplObserver`, `SplPriorityQueue`, `SplQueue`, `SplStack`, `SplSubject`, `SplTempFileObject`
 - `throw new ...` expressions
+- `new static` and `new self`: a class constructing itself has nothing to inject (`new parent` is reported as `NewParentFound`)
 - Classes listed in `allowedClasses`
 
 ```php
@@ -352,6 +338,9 @@ public function __construct(
 
 #### Configuration
 
+The sniff reports every class it does not recognize. When it reports a value
+object, add the class to `allowedClasses`: the list stays in the project's
+`phpcs.xml`, where a reviewer sees every class the project treats as a value.
 Extend the allow-list via `allowedClasses` or `allowedSuffixes` in your `phpcs.xml`:
 
 ```xml

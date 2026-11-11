@@ -30,14 +30,32 @@
         </properties>
     </rule>
 
-    <!-- BEAR.Sunday custom sniffs -->
-    <rule ref="BearSunday.Resources.ReturnStatic"/>
-    <rule ref="BearSunday.Resources.NoSuperglobals"/>
-    <rule ref="BearSunday.Resources.NoAbstractResource"/>
-    <rule ref="BearSunday.Resources.NoFinalResource"/>
-    <rule ref="BearSunday.Resources.StatusCodeConstant"/>
-    <rule ref="BearSunday.Resources.HeaderConstant"/>
-    <rule ref="BearSunday.DbQuery.RedundantType"/>
-    <rule ref="BearSunday.Di.NoNewService"/>
-    <rule ref="BearSunday.AppMeta.NoAppDirWritablePath"/>
+    <!-- BEAR.Sunday custom sniffs check application code; tests keep the rules above -->
+    <rule ref="BearSunday.Resources.ReturnStatic">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="BearSunday.Resources.NoSuperglobals">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="BearSunday.Resources.NoAbstractResource">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="BearSunday.Resources.NoFinalResource">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="BearSunday.Resources.StatusCodeConstant">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="BearSunday.Resources.HeaderConstant">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="BearSunday.DbQuery.RedundantType">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="BearSunday.Di.NoNewService">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
+    <rule ref="BearSunday.AppMeta.NoAppDirWritablePath">
+        <exclude-pattern>*/tests/*</exclude-pattern>
+    </rule>
 </ruleset>
