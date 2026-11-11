@@ -118,3 +118,21 @@ class ArticleService
         return new \arrayiterator([]);
     }
 }
+
+// OK: a Ray.Di provider builds what it provides
+final class ArticleProvider implements \Ray\Di\ProviderInterface
+{
+    public function get(): ArticleService
+    {
+        return new ArticleService();
+    }
+}
+
+// ERROR: implementing another interface does not exempt the class
+final class ArticleCounter implements \Countable
+{
+    public function make(): ArticleService
+    {
+        return new ArticleService();
+    }
+}

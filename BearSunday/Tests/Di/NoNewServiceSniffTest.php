@@ -142,4 +142,16 @@ final class NoNewServiceSniffTest extends SniffTestCase
         $messages = reset($errors[112]);
         $this->assertSame('BearSunday.Di.NoNewService.NewParentFound', $messages[0]['source']);
     }
+
+    public function testSniffAllowsNewInsideAProvider(): void
+    {
+        $result = $this->processSniff(
+            $this->sniffPath('Di', 'NoNewServiceSniff'),
+            $this->tempFile,
+        );
+        $errors = $result['errors'];
+
+        $this->assertArrayNotHasKey(127, $errors, 'Should not error on line 127 (new inside a ProviderInterface implementation)');
+        $this->assertArrayHasKey(136, $errors, 'Expected error on line 136 (another interface does not exempt the class)');
+    }
 }

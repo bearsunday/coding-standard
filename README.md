@@ -306,7 +306,9 @@ public function item(int $id): ?Article;
 **Trigger:** `new ClassName` expressions inside files whose path contains
 `/Resource/`, `/Service/`, or `/Domain/`.
 
-**Excluded paths:** `/Module/`, `/Provider/`, `/Factory/` (composition roots).
+**Excluded:** files under `/Module/`, `/Provider/` or `/Factory/`, and classes that
+implement `ProviderInterface` wherever they are (composition roots). The interface
+is matched by its short name, since the sniff does not resolve `use` imports.
 
 **Rule:** service-layer classes must receive dependencies via Ray.Di constructor
 injection, not direct `new`.

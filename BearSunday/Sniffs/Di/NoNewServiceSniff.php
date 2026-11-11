@@ -17,6 +17,7 @@ use function strrpos;
 use function strtolower;
 use function substr;
 
+use const T_CLASS;
 use const T_CLOSE_CURLY_BRACKET;
 use const T_NAME_FULLY_QUALIFIED;
 use const T_NAME_QUALIFIED;
@@ -46,6 +47,7 @@ use const T_WHITESPACE;
  *   - SPL classes listed in ALLOWED_SPL_CLASSES
  *   - throw new ... expressions (domain exceptions must be thrown, not injected)
  *   - new static / new self: a class constructing itself has nothing to inject
+ *   - new inside a class implementing ProviderInterface: a Ray.Di provider builds what it provides
  *   - Configurable via $allowedClasses and $allowedSuffixes properties
  *
  * Trigger paths: <code>/Resource/</code>, <code>/Service/</code>, <code>/Domain/</code>
@@ -158,6 +160,10 @@ final class NoNewServiceSniff implements Sniff
             return;
         }
 
+        if ($this->isInProvider($phpcsFile, $stackPtr)) {
+            return;
+        }
+
         // Check if this is `throw new ...`
         if ($this->isThrowContext($phpcsFile, $stackPtr)) {
             return;
@@ -201,6 +207,28 @@ final class NoNewServiceSniff implements Sniff
             'NewServiceFound',
             [$className],
         );
+    }
+
+    /** Matched by short name: the sniff does not resolve `use` imports. */
+    private function isInProvider(File $phpcsFile, int $stackPtr): bool
+    {
+        $classPtr = $phpcsFile->getCondition($stackPtr, T_CLASS);
+        if ($classPtr === false) {
+            return false;
+        }
+
+        $interfaces = $phpcsFile->findImplementedInterfaceNames($classPtr);
+        if ($interfaces === false) {
+            return false;
+        }
+
+        foreach ($interfaces as $interface) {
+            if (strcasecmp($this->shortClassName(ltrim($interface, '\\')), 'ProviderInterface') === 0) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private function isAllowed(string $bareClass): bool
