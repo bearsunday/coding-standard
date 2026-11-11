@@ -194,8 +194,9 @@ final class NoNewServiceSniff implements Sniff
 
         $phpcsFile->addError(
             'Direct instantiation of "%s" is not allowed in service-layer classes. '
-            . 'Use Ray.Di dependency injection instead. '
-            . 'Value objects (Input, Dto, Entity, ValueObject, Exception) and date classes are exempt.',
+            . 'If it is a service, inject it through the constructor with Ray.Di. '
+            . 'If it is a value object, add it to the allowedClasses property of '
+            . 'BearSunday.Di.NoNewService in phpcs.xml.',
             $stackPtr,
             'NewServiceFound',
             [$className],
